@@ -69,6 +69,8 @@
                             "pieces",
                             x + y * WIDTH_IN_PIECES
                         )
+                        piece.setData("x", x)
+                        piece.setData("y", y)
                         // set the top left corner to be the origin
                         // instead of the center
                         piece.setOrigin(0)
