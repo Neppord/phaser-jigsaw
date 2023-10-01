@@ -39,10 +39,28 @@
                 )
             },
             create() {
+                const facit = this.add.image(0,0,"jigsaw")
                 const selected = this.add.group()
                 const table = this.add.layer()
                 const forground = this.add.layer()
                 forground.bringToTop()
+
+                facit.setOrigin(0)
+                facit.setAlpha(0.01)
+                facit.setInteractive()
+                facit.on("pointerdown", () => {
+                    selected.setTint()
+                    selected.clear()
+                    forground.each(child => table.add(child))
+                })
+                this.input.keyboard.on('keydown-ALT', () => {
+                    console.log("down")
+                    facit.setAlpha(0.5)
+                })
+                this.input.keyboard.on('keyup-ALT', () => {
+                    facit.setAlpha(0.01)
+                })
+                
                 for (let x = 0; x < WIDTH_IN_PIECES; x++) {
                     for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
                         const piece = this.add.image(
@@ -86,6 +104,7 @@
                         pieces.push(piece)
                     }
                 }
+                
                 const board = new Phaser.Geom.Rectangle(
                     0,
                     0,
