@@ -60,27 +60,19 @@
                             Phaser.Input.Keyboard.KeyCodes.SHIFT
                         )
                         piece.on('dragstart', function () {
-                            if (shift.isDown) {
-                                if (!selected.contains(this)) {
-                                    //selected.setTint()
-                                    //selected.clear()
+                            if (!selected.contains(this)) {
+                                if (shift.isDown) {
                                     this.setTint(0xFFFF00)
                                     selected.add(this)
                                     forground.add(this)
                                 } else {
-                                    this.clearTint()
-                                    table.add(this)
-                                    selected.remove(this)
+                                    selected.setTint()
+                                    selected.clear()
+                                    forground.each(child => table.add(child))
+                                    selected.add(this)
+                                    this.setTint(0xFFFF00)
+                                    forground.add(this)
                                 }
-                            } else if(!selected.contains(this)) {
-                                selected.setTint()
-                                selected.clear()
-                                forground.each(child => {
-                                    table.add(child)
-                                })
-                                selected.add(this)
-                                this.setTint(0xFFFF00)
-                                forground.add(this)
                             }
                         })
                         piece.on('drag', function (pointer, dragX, dragY) {
