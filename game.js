@@ -46,6 +46,7 @@ class Scene extends Phaser.Scene {
             facit.setAlpha(0.01)
         })
 
+        const toRandomise = []
         for (let x = 0; x < WIDTH_IN_PIECES; x++) {
             for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
                 const piece = this.add.image(
@@ -88,7 +89,7 @@ class Scene extends Phaser.Scene {
                         )
                     }
                 })
-                pieces.push(piece)
+                toRandomise.push(piece)
             }
         }
 
@@ -98,11 +99,10 @@ class Scene extends Phaser.Scene {
             WIDTH - PIECE_WIDTH,
             HEIGHT - PIECE_HEIGHT
         );
-        Phaser.Actions.RandomRectangle(pieces, board)
+        Phaser.Actions.RandomRectangle(toRandomise, board)
     }
 }
 
-const pieces = []
 new Phaser.Game({
     scene: Scene,
     scale: {
