@@ -48,8 +48,8 @@ class Scene extends Phaser.Scene {
         const facit = this.add.image(0, 0, "jigsaw")
         const selected = this.add.group()
         const table = this.add.layer()
-        const forground = this.add.layer()
-        forground.bringToTop()
+        const foreground = this.add.layer()
+        foreground.bringToTop()
 
         facit.setOrigin(0)
         facit.setAlpha(0.01)
@@ -57,7 +57,7 @@ class Scene extends Phaser.Scene {
         facit.on("pointerdown", () => {
             selected.setTint()
             selected.clear()
-            forground.each(child => table.add(child))
+            foreground.each(child => table.add(child))
         })
         this.input.keyboard.on('keydown-ALT', () => {
             console.log("down")
@@ -91,14 +91,14 @@ class Scene extends Phaser.Scene {
                         if (shift.isDown) {
                             this.setTint(0xFFFF00)
                             selected.add(this)
-                            forground.add(this)
+                            foreground.add(this)
                         } else {
                             selected.setTint()
                             selected.clear()
-                            forground.each(child => table.add(child))
+                            foreground.each(child => table.add(child))
                             selected.add(this)
                             this.setTint(0xFFFF00)
-                            forground.add(this)
+                            foreground.add(this)
                         }
                     }
                 })
