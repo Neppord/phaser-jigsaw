@@ -29,7 +29,7 @@ class Scene extends Phaser.Scene {
                 const yStart = y === 0 ?
                     y * PIECE_HEIGHT :
                     y * PIECE_HEIGHT - HEIGHT_OVERLAP;
-                const width = x === 0 || x === WIDTH_IN_PIECES -1 ?
+                const width = x === 0 || x === WIDTH_IN_PIECES - 1 ?
                     PIECE_WIDTH + WIDTH_OVERLAP :
                     PIECE_WIDTH + 2 * WIDTH_OVERLAP;
                 const height = y === 0 || y === HEIGHT_IN_PIECES - 1 ?
@@ -67,6 +67,13 @@ class Scene extends Phaser.Scene {
             facit.setAlpha(0.01)
         })
 
+        const mask = this.add.graphics()
+            .fillCircle(
+                PIECE_WIDTH / 2,
+                PIECE_HEIGHT / 2,
+                Math.min(PIECE_HEIGHT, PIECE_WIDTH)
+            )
+            .createGeometryMask()
         const toRandomise = []
         for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
             for (let x = 0; x < WIDTH_IN_PIECES; x++) {
