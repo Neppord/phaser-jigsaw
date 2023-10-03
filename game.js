@@ -7,23 +7,44 @@ console.log("Width: ", WIDTH_IN_PIECES)
 console.log("Height: ", HEIGHT_IN_PIECES)
 const PIECE_WIDTH = WIDTH / WIDTH_IN_PIECES;
 const PIECE_HEIGHT = HEIGHT / HEIGHT_IN_PIECES;
+const OVERLAP = 5
+const WIDTH_OVERLAP = PIECE_WIDTH / OVERLAP;
+const HEIGHT_OVERLAP = PIECE_HEIGHT / OVERLAP;
 console.log("Piece Width: ", PIECE_WIDTH)
 console.log("Piece Height: ", PIECE_HEIGHT)
 
 class Scene extends Phaser.Scene {
     preload() {
         this.load.image("jigsaw", "ship-1366926_crop_4k.png")
-        const frameConfig = {
-            frameWidth: PIECE_WIDTH,
-            frameHeight: PIECE_HEIGHT,
-        };
-        this.load.spritesheet(
-            "pieces",
-            "ship-1366926_crop_4k.png",
-            frameConfig
-        )
+        this.load.image("pieces", "ship-1366926_crop_4k.png")
     }
+
     create() {
+        const jigsawTexture = this.textures.get("pieces")
+        for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
+            for (let x = 0; x < WIDTH_IN_PIECES; x++) {
+                const xStart = x === 0 ?
+                    x * PIECE_WIDTH :
+                    x * PIECE_WIDTH - WIDTH_OVERLAP;
+                const yStart = y === 0 ?
+                    y * PIECE_HEIGHT :
+                    y * PIECE_HEIGHT - HEIGHT_OVERLAP;
+                const width = x === 0 || x === WIDTH_IN_PIECES -1 ?
+                    PIECE_WIDTH + WIDTH_OVERLAP :
+                    PIECE_WIDTH + 2 * WIDTH_OVERLAP;
+                const height = y === 0 || y === HEIGHT_IN_PIECES - 1 ?
+                    PIECE_HEIGHT + HEIGHT_OVERLAP :
+                    PIECE_HEIGHT + 2 * HEIGHT_OVERLAP;
+                jigsawTexture.add(
+                    y * WIDTH_IN_PIECES + x,
+                    0,
+                    xStart,
+                    yStart,
+                    width,
+                    height
+                )
+            }
+        }
         const facit = this.add.image(0, 0, "jigsaw")
         const selected = this.add.group()
         const table = this.add.layer()
@@ -47,8 +68,8 @@ class Scene extends Phaser.Scene {
         })
 
         const toRandomise = []
-        for (let x = 0; x < WIDTH_IN_PIECES; x++) {
-            for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
+        for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
+            for (let x = 0; x < WIDTH_IN_PIECES; x++) {
                 const piece = this.add.image(
                     PIECE_WIDTH * x,
                     PIECE_HEIGHT * y,
@@ -106,8 +127,8 @@ class Scene extends Phaser.Scene {
 new Phaser.Game({
     scene: Scene,
     scale: {
-        //mode: Phaser.Scale.FIT,
-        //autoCenter: Phaser.Scale.CENTER_BOTH,
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
         width: WIDTH,
         height: HEIGHT,
     },
