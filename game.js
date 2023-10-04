@@ -1,7 +1,7 @@
 const WIDTH = 3840;
 const HEIGHT = 2160;
-const WIDTH_IN_PIECES = 16 * 4;
-const HEIGHT_IN_PIECES = 9 * 4;
+const WIDTH_IN_PIECES = 2 //16 * 4;
+const HEIGHT_IN_PIECES = 2 // 9 * 4;
 console.log("Pieces: ", WIDTH_IN_PIECES * HEIGHT_IN_PIECES)
 console.log("Width: ", WIDTH_IN_PIECES)
 console.log("Height: ", HEIGHT_IN_PIECES)
@@ -10,41 +10,41 @@ const PIECE_HEIGHT = HEIGHT / HEIGHT_IN_PIECES;
 const OVERLAP = 5
 const WIDTH_OVERLAP = PIECE_WIDTH / OVERLAP;
 const HEIGHT_OVERLAP = PIECE_HEIGHT / OVERLAP;
+const TOTAL_PIECE_WIDTH = PIECE_WIDTH + 2 * WIDTH_OVERLAP;
+const TOTAL_PIECE_HEIGHT = PIECE_HEIGHT + 2 * HEIGHT_OVERLAP;
 console.log("Piece Width: ", PIECE_WIDTH)
 console.log("Piece Height: ", PIECE_HEIGHT)
 
 class Scene extends Phaser.Scene {
     preload() {
         this.load.image("jigsaw", "ship-1366926_crop_4k.png")
-        this.load.image("pieces", "ship-1366926_crop_4k.png")
     }
 
     create() {
-        const jigsawTexture = this.textures.get("pieces")
+        const atlas = this.textures
+            .addDynamicTexture(
+                "pieces",
+                WIDTH_IN_PIECES * TOTAL_PIECE_WIDTH ,
+                HEIGHT_IN_PIECES * TOTAL_PIECE_HEIGHT,
+            )
+        const jigsaw = this.make
+            .image({key: "jigsaw"})
+            .setOrigin(0, 0)
+        atlas.draw(jigsaw, 0 , 0)
         for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
             for (let x = 0; x < WIDTH_IN_PIECES; x++) {
-                const xStart = x === 0 ?
-                    x * PIECE_WIDTH :
-                    x * PIECE_WIDTH - WIDTH_OVERLAP;
-                const yStart = y === 0 ?
-                    y * PIECE_HEIGHT :
-                    y * PIECE_HEIGHT - HEIGHT_OVERLAP;
-                const width = x === 0 || x === WIDTH_IN_PIECES - 1 ?
-                    PIECE_WIDTH + WIDTH_OVERLAP :
-                    PIECE_WIDTH + 2 * WIDTH_OVERLAP;
-                const height = y === 0 || y === HEIGHT_IN_PIECES - 1 ?
-                    PIECE_HEIGHT + HEIGHT_OVERLAP :
-                    PIECE_HEIGHT + 2 * HEIGHT_OVERLAP;
-                jigsawTexture.add(
+                atlas.add(
                     y * WIDTH_IN_PIECES + x,
                     0,
-                    xStart,
-                    yStart,
-                    width,
-                    height
+                    PIECE_WIDTH * x,
+                    PIECE_HEIGHT * y,
+                    PIECE_WIDTH,
+                    PIECE_HEIGHT,
                 )
             }
         }
+        jigsaw.destroy(true)
+        
         const facit = this.add.image(0, 0, "jigsaw")
         const selected = this.add.group()
         const table = this.add.layer()
@@ -66,23 +66,12 @@ class Scene extends Phaser.Scene {
         this.input.keyboard.on('keyup-ALT', () => {
             facit.setAlpha(0.01)
         })
-
-        const mask = this.add.graphics()
-            .fillCircle(
-                PIECE_WIDTH / 2,
-                PIECE_HEIGHT / 2,
-                Math.min(PIECE_HEIGHT, PIECE_WIDTH)
-            )
-            .createGeometryMask()
         const toRandomise = []
         for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
             for (let x = 0; x < WIDTH_IN_PIECES; x++) {
-                const piece = this.physics.add.image(
-                    PIECE_WIDTH * x,
-                    PIECE_HEIGHT * y,
-                    "pieces",
-                    x + y * WIDTH_IN_PIECES
-                )
+                const frameNumber = x + y * WIDTH_IN_PIECES;
+                const piece = 
+                    this.physics.add.image(0, 0, "pieces", frameNumber)
                 piece.setData("x", x)
                 piece.setData("y", y)
                 // set the top left corner to be the origin
