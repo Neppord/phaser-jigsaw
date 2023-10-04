@@ -1,7 +1,7 @@
 const WIDTH = 3840;
 const HEIGHT = 2160;
-const WIDTH_IN_PIECES = 2 //16 * 4;
-const HEIGHT_IN_PIECES = 2 // 9 * 4;
+const WIDTH_IN_PIECES = 16 * 4;
+const HEIGHT_IN_PIECES = 9 * 4;
 console.log("Pieces: ", WIDTH_IN_PIECES * HEIGHT_IN_PIECES)
 console.log("Width: ", WIDTH_IN_PIECES)
 console.log("Height: ", HEIGHT_IN_PIECES)
@@ -30,16 +30,31 @@ class Scene extends Phaser.Scene {
         const jigsaw = this.make
             .image({key: "jigsaw"})
             .setOrigin(0, 0)
-        atlas.draw(jigsaw, 0 , 0)
         for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
             for (let x = 0; x < WIDTH_IN_PIECES; x++) {
+                jigsaw.setMask(
+                    this.make.graphics()
+                        .fillRect(
+                            TOTAL_PIECE_WIDTH * x,
+                            TOTAL_PIECE_HEIGHT * y,
+                            TOTAL_PIECE_WIDTH,
+                            TOTAL_PIECE_HEIGHT,
+                        )
+                        .createGeometryMask()
+                )
+                atlas.draw(
+                    jigsaw,
+                    WIDTH_OVERLAP + 2 * WIDTH_OVERLAP * x,
+                    HEIGHT_OVERLAP + 2 * HEIGHT_OVERLAP * y
+                )
+                jigsaw.clearMask(true)
                 atlas.add(
                     y * WIDTH_IN_PIECES + x,
                     0,
-                    PIECE_WIDTH * x,
-                    PIECE_HEIGHT * y,
-                    PIECE_WIDTH,
-                    PIECE_HEIGHT,
+                    TOTAL_PIECE_WIDTH * x,
+                    TOTAL_PIECE_HEIGHT * y,
+                    TOTAL_PIECE_WIDTH,
+                    TOTAL_PIECE_HEIGHT,
                 )
             }
         }
@@ -72,6 +87,7 @@ class Scene extends Phaser.Scene {
                 const frameNumber = x + y * WIDTH_IN_PIECES;
                 const piece = 
                     this.physics.add.image(0, 0, "pieces", frameNumber)
+                piece.setSize(PIECE_WIDTH, PIECE_HEIGHT)
                 piece.setData("x", x)
                 piece.setData("y", y)
                 // set the top left corner to be the origin
