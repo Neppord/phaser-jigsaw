@@ -77,7 +77,7 @@ class Scene extends Phaser.Scene {
         const toRandomise = []
         for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
             for (let x = 0; x < WIDTH_IN_PIECES; x++) {
-                const piece = this.add.image(
+                const piece = this.physics.add.image(
                     PIECE_WIDTH * x,
                     PIECE_HEIGHT * y,
                     "pieces",
@@ -95,6 +95,7 @@ class Scene extends Phaser.Scene {
                 )
                 piece.on('dragstart', function () {
                     if (!selected.contains(this)) {
+                        this.setCollideWorldBounds(true);
                         if (shift.isDown) {
                             this.setTint(0xFFFF00)
                             selected.add(this)
@@ -102,7 +103,10 @@ class Scene extends Phaser.Scene {
                         } else {
                             selected.setTint()
                             selected.clear()
-                            foreground.each(child => table.add(child))
+                            foreground.each(child => {
+                                table.add(child)
+                                child.setCollideWorldBounds(false);
+                            })
                             selected.add(this)
                             this.setTint(0xFFFF00)
                             foreground.add(this)
@@ -133,6 +137,13 @@ class Scene extends Phaser.Scene {
 
 new Phaser.Game({
     scene: Scene,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 },
+            debug: true
+        }
+    },
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
