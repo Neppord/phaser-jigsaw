@@ -1,5 +1,5 @@
-const WIDTH = 3840;
-const HEIGHT = 2160;
+const WIDTH = 1920;
+const HEIGHT = 1080;
 const WIDTH_IN_PIECES = 16;
 const HEIGHT_IN_PIECES = 9;
 console.log("Pieces: ", WIDTH_IN_PIECES * HEIGHT_IN_PIECES)
@@ -17,7 +17,7 @@ console.log("Piece Height: ", PIECE_HEIGHT)
 
 class Scene extends Phaser.Scene {
     preload() {
-        this.load.image("jigsaw", "ship-1366926_crop_4k.png")
+        this.load.image("jigsaw", "ship-1366926_1920.jpg")
     }
 
     pieceIndex(x, y) {
