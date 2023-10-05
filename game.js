@@ -198,6 +198,7 @@ class Scene extends Phaser.Scene {
                         )
                     }
                 })
+                piece.setScale(0)
                 toRandomise.push(piece)
             }
         }
@@ -209,6 +210,16 @@ class Scene extends Phaser.Scene {
             HEIGHT - PIECE_HEIGHT
         );
         Phaser.Actions.RandomRectangle(toRandomise, board)
+        this.tweens.add({
+            targets: toRandomise,
+            props: {
+                scale: {from: 0.2, to: 1},
+                angle: {from: 360, to: 0},
+            },
+            //ease: 'linear',
+            duration: 500,
+            delay: this.tweens.stagger(1)
+        });
     }
 }
 
