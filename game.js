@@ -20,28 +20,92 @@ class Scene extends Phaser.Scene {
         this.load.image("jigsaw", "ship-1366926_crop_4k.png")
     }
 
+    pieceIndex(x, y) {
+        return y * WIDTH_IN_PIECES + x
+    }
+
+    vertical(x, y) {
+        const index = this.pieceIndex(x, y)
+        const rnd = new Phaser.Math.RandomDataGenerator(index)
+        return [rnd.frac(), rnd.frac(), rnd.frac(), rnd.frac()]
+    }
+
+    horizontal(x, y) {
+        const index = this.pieceIndex(x, y) << 8
+        const rnd = new Phaser.Math.RandomDataGenerator(index)
+        return [rnd.frac(), rnd.frac(), rnd.frac(), rnd.frac()]
+    }
+    piecePoints(x, y) {
+        const points = []
+        points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
+        // TOP
+        if (y === 0) {
+            points.push([TOTAL_PIECE_WIDTH - WIDTH_OVERLAP, HEIGHT_OVERLAP])
+        } else {
+            const [y1, y2, y3, y4] = this.horizontal(x, y)
+            points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.25, HEIGHT_OVERLAP * (1 + y1)])
+            points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.50, HEIGHT_OVERLAP * (1 - y2)])
+            points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.75, HEIGHT_OVERLAP * (1 + y3)])
+            points.push([WIDTH_OVERLAP + PIECE_WIDTH, HEIGHT_OVERLAP])
+        }
+        // RIGHT
+        if (x === WIDTH_IN_PIECES - 1) {
+            points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
+        } else {
+            const [x1, x2, x3, x4] = this.horizontal(x + 1, y)
+            points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 + x1), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.25])
+            points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 - x2), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.50])
+            points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 + x3), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.75])
+            points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
+        }
+        // BOTTOM
+        if (y === HEIGHT_IN_PIECES - 1) {
+            points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
+        } else {
+            const [y1, y2, y3, y4] = this.horizontal(x, y + 1)
+            points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.75, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y3)])
+            points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.50, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 - y2)])
+            points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.25, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y1)])
+            points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
+        }
+        // LEFT
+        if (x === 0) {
+            points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
+        } else {
+            const [x1, x2, x3, x4] = this.horizontal(x, y)
+            points.push([WIDTH_OVERLAP * (1 + x3), PIECE_HEIGHT * 0.75 + HEIGHT_OVERLAP])
+            points.push([WIDTH_OVERLAP * (1 - x2), PIECE_HEIGHT * 0.50 + HEIGHT_OVERLAP])
+            points.push([WIDTH_OVERLAP * (1 + x1), PIECE_HEIGHT * 0.25 + HEIGHT_OVERLAP])
+            points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
+        }
+        return points
+        
+    }
+    makePieceShape(x, y) {
+        const ctx = this.make.graphics()
+        ctx.fillPoints(
+            this.piecePoints(x, y).map(([x, y]) => new Phaser.Geom.Point(x, y)),
+            true,
+        )
+        return ctx
+    }
+
     create() {
         const atlas = this.textures
             .addDynamicTexture(
                 "pieces",
-                WIDTH_IN_PIECES * TOTAL_PIECE_WIDTH ,
+                WIDTH_IN_PIECES * TOTAL_PIECE_WIDTH,
                 HEIGHT_IN_PIECES * TOTAL_PIECE_HEIGHT,
             )
+        atlas.fill(0x000000, 0)
         const jigsaw = this.make
             .image({key: "jigsaw"})
             .setOrigin(0, 0)
         for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
             for (let x = 0; x < WIDTH_IN_PIECES; x++) {
-                jigsaw.setMask(
-                    this.make.graphics()
-                        .fillRect(
-                            TOTAL_PIECE_WIDTH * x,
-                            TOTAL_PIECE_HEIGHT * y,
-                            TOTAL_PIECE_WIDTH,
-                            TOTAL_PIECE_HEIGHT,
-                        )
-                        .createGeometryMask()
-                )
+                const m = this.makePieceShape(x, y)
+                m.setPosition(TOTAL_PIECE_WIDTH * x, TOTAL_PIECE_HEIGHT * y)
+                jigsaw.setMask(m.createGeometryMask())
                 atlas.draw(
                     jigsaw,
                     WIDTH_OVERLAP + 2 * WIDTH_OVERLAP * x,
@@ -59,7 +123,7 @@ class Scene extends Phaser.Scene {
             }
         }
         jigsaw.destroy(true)
-        
+
         const facit = this.add.image(0, 0, "jigsaw")
         const selected = this.add.group()
         const table = this.add.layer()
@@ -75,7 +139,6 @@ class Scene extends Phaser.Scene {
             foreground.each(child => table.add(child))
         })
         this.input.keyboard.on('keydown-ALT', () => {
-            console.log("down")
             facit.setAlpha(0.5)
         })
         this.input.keyboard.on('keyup-ALT', () => {
@@ -84,16 +147,25 @@ class Scene extends Phaser.Scene {
         const toRandomise = []
         for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
             for (let x = 0; x < WIDTH_IN_PIECES; x++) {
-                const frameNumber = x + y * WIDTH_IN_PIECES;
-                const piece = 
+                const frameNumber = this.pieceIndex(x, y);
+                const piece =
                     this.physics.add.image(0, 0, "pieces", frameNumber)
                 piece.setSize(PIECE_WIDTH, PIECE_HEIGHT)
                 piece.setData("x", x)
                 piece.setData("y", y)
                 // set the top left corner to be the origin
                 // instead of the center
+                const points = this.piecePoints(x, y)
                 piece.setOrigin(0)
-                piece.setInteractive({draggable: true});
+                const hitArea = new Phaser.Geom.Polygon(points);
+                piece.setInteractive({
+                    draggable: true,
+                    hitArea: hitArea,
+                    // why I need to write this one by hand im not sure
+                    hitAreaCallback: function (hitArea, x, y, piece) {
+                        return hitArea.contains(x, y)
+                    }
+                })
                 table.add(piece)
                 let shift = this.input.keyboard.addKey(
                     Phaser.Input.Keyboard.KeyCodes.SHIFT
@@ -145,8 +217,8 @@ new Phaser.Game({
     physics: {
         default: 'arcade',
         arcade: {
-            gravity: { y: 0 },
-            debug: true
+            gravity: {y: 0},
+            debug: false
         }
     },
     scale: {
