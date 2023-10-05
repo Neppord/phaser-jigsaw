@@ -26,13 +26,13 @@ class Scene extends Phaser.Scene {
 
     vertical(x, y) {
         const index = this.pieceIndex(x, y)
-        const rnd = new Phaser.Math.RandomDataGenerator(index)
+        const rnd = new Phaser.Math.RandomDataGenerator([index])
         return [rnd.frac(), rnd.frac(), rnd.frac(), rnd.frac()]
     }
 
     horizontal(x, y) {
         const index = this.pieceIndex(x, y) << 8
-        const rnd = new Phaser.Math.RandomDataGenerator(index)
+        const rnd = new Phaser.Math.RandomDataGenerator([index])
         return [rnd.frac(), rnd.frac(), rnd.frac(), rnd.frac()]
     }
     piecePoints(x, y) {
