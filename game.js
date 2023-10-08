@@ -149,7 +149,7 @@ class Scene extends Phaser.Scene {
             for (let x = 0; x < WIDTH_IN_PIECES; x++) {
                 const frameNumber = this.pieceIndex(x, y);
                 const piece =
-                    this.physics.add.image(0, 0, "pieces", frameNumber)
+                    this.add.image(0, 0, "pieces", frameNumber)
                 piece.setSize(PIECE_WIDTH, PIECE_HEIGHT)
                 piece.setData("x", x)
                 piece.setData("y", y)
@@ -172,7 +172,6 @@ class Scene extends Phaser.Scene {
                 )
                 piece.on('dragstart', function () {
                     if (!selected.contains(this)) {
-                        this.setCollideWorldBounds(true);
                         if (shift.isDown) {
                             this.setTint(0xFFFF00)
                             selected.add(this)
@@ -182,7 +181,6 @@ class Scene extends Phaser.Scene {
                             selected.clear()
                             foreground.each(child => {
                                 table.add(child)
-                                child.setCollideWorldBounds(false);
                             })
                             selected.add(this)
                             this.setTint(0xFFFF00)
