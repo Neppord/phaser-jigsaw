@@ -141,6 +141,9 @@ class Scene extends Phaser.Scene {
       foreground.each(child => table.add(child))
     })
     const toRandomise = []
+    const grid = new Array(WIDTH_IN_PIECES)
+      .fill([])
+      .map(() => new Array(HEIGHT_IN_PIECES))
     for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
       for (let x = 0; x < WIDTH_IN_PIECES; x++) {
         const frameNumber = this.pieceIndex(x, y)
@@ -150,9 +153,10 @@ class Scene extends Phaser.Scene {
               y: y * PIECE_HEIGHT - HEIGHT_OVERLAP,
               key: "pieces",
               frame: frameNumber,
-            }, false
+            }, false,
           )
         const container = this.add.container(0, 0, piece)
+        grid[x][y] = container
         piece.setSize(PIECE_WIDTH, PIECE_HEIGHT)
         piece.setData("x", x)
         piece.setData("y", y)
@@ -165,14 +169,13 @@ class Scene extends Phaser.Scene {
         Phaser.Geom.Polygon.Translate(
           hitArea,
           x * PIECE_WIDTH - WIDTH_OVERLAP,
-          y * PIECE_HEIGHT - HEIGHT_OVERLAP
+          y * PIECE_HEIGHT - HEIGHT_OVERLAP,
         )
+        container.setData("hitAreas", [hitArea])
         container.setInteractive({
           draggable: true,
-          hitArea: hitArea,
-          // why I need to write this one by hand im not sure
-          hitAreaCallback: function (hitArea, x, y, piece) {
-            return hitArea.contains(x, y)
+          hitAreaCallback: function (hitArea, x, y, c) {
+            return c.getData("hitAreas").some(ha => ha.contains(x, y))
           },
         })
         table.add(container)
@@ -205,17 +208,38 @@ class Scene extends Phaser.Scene {
             )
           }
         })
+        container.on('dragend', () => {
+          selected.children.each(c => {
+            c.each(p => {
+              const gridX = p.getData("x")
+              const gridY = p.getData("y")
+              const candidates = []
+              if (gridX < WIDTH_IN_PIECES - 1) candidates.push(grid[gridX + 1][gridY])
+              if (gridX > 0) candidates.push(grid[gridX - 1][gridY])
+              if (gridY < HEIGHT_IN_PIECES - 1) candidates.push(grid[gridX][gridY + 1])
+              if (gridY > 0) candidates.push(grid[gridX][gridY - 1])
+              candidates
+                .filter(other => other !== c)
+                .filter(other => Math.abs(c.x - other.x) < WIDTH_OVERLAP)
+                .filter(other => Math.abs(c.y - other.y) < HEIGHT_OVERLAP)
+                .forEach(other => {
+                  other.each(op => {
+                    grid[op.getData("x")][op.getData("y")] = c
+                    c.add(op)
+                    op.setTint(0xFFFF00)
+                  })
+                  other.removeAll()
+                  const hitAreas = c.getData("hitAreas")
+                  other.getData("hitAreas").forEach(ha => hitAreas.push(ha))
+                })
+            })
+            
+          })
+        })
         container.setScale(0)
         toRandomise.push(container)
       }
     }
-
-    const board = new Phaser.Geom.Rectangle(
-      0,
-      0,
-      WIDTH - PIECE_WIDTH,
-      HEIGHT - PIECE_HEIGHT,
-    )
     this.tweens.add({
       targets: toRandomise,
       props: {
