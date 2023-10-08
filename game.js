@@ -1,7 +1,7 @@
 const WIDTH = 1920
 const HEIGHT = 1080
-const WIDTH_IN_PIECES = 16
-const HEIGHT_IN_PIECES = 9
+const WIDTH_IN_PIECES = 16 * 4
+const HEIGHT_IN_PIECES = 9 * 4
 console.log("Pieces: ", WIDTH_IN_PIECES * HEIGHT_IN_PIECES)
 console.log("Width: ", WIDTH_IN_PIECES)
 console.log("Height: ", HEIGHT_IN_PIECES)
