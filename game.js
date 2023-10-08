@@ -133,34 +133,41 @@ class Scene extends Phaser.Scene {
     foreground.bringToTop()
 
     facit.setOrigin(0)
-    facit.setAlpha(0.01)
+    facit.setAlpha(0.5)
     facit.setInteractive()
     facit.on("pointerdown", () => {
-      selected.setTint()
+      selected.children.each(container => container.each(p => p.setTint()))
       selected.clear()
       foreground.each(child => table.add(child))
-    })
-    this.input.keyboard.on('keydown-ALT', () => {
-      facit.setAlpha(0.5)
-    })
-    this.input.keyboard.on('keyup-ALT', () => {
-      facit.setAlpha(0.01)
     })
     const toRandomise = []
     for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
       for (let x = 0; x < WIDTH_IN_PIECES; x++) {
         const frameNumber = this.pieceIndex(x, y)
         const piece =
-          this.add.image(0, 0, "pieces", frameNumber)
+          this.make.image({
+              x: x * PIECE_WIDTH - WIDTH_OVERLAP,
+              y: y * PIECE_HEIGHT - HEIGHT_OVERLAP,
+              key: "pieces",
+              frame: frameNumber,
+            }, false
+          )
+        const container = this.add.container(0, 0, piece)
         piece.setSize(PIECE_WIDTH, PIECE_HEIGHT)
         piece.setData("x", x)
         piece.setData("y", y)
+        piece.setData("container", container)
         // set the top left corner to be the origin
         // instead of the center
         const points = this.piecePoints(x, y)
         piece.setOrigin(0)
         const hitArea = new Phaser.Geom.Polygon(points)
-        piece.setInteractive({
+        Phaser.Geom.Polygon.Translate(
+          hitArea,
+          x * PIECE_WIDTH - WIDTH_OVERLAP,
+          y * PIECE_HEIGHT - HEIGHT_OVERLAP
+        )
+        container.setInteractive({
           draggable: true,
           hitArea: hitArea,
           // why I need to write this one by hand im not sure
@@ -168,29 +175,29 @@ class Scene extends Phaser.Scene {
             return hitArea.contains(x, y)
           },
         })
-        table.add(piece)
+        table.add(container)
         let shift = this.input.keyboard.addKey(
           Phaser.Input.Keyboard.KeyCodes.SHIFT,
         )
-        piece.on('dragstart', function () {
+        container.on('dragstart', function () {
           if (!selected.contains(this)) {
             if (shift.isDown) {
-              this.setTint(0xFFFF00)
+              this.each(p => p.setTint(0xFFFF00))
               selected.add(this)
               foreground.add(this)
             } else {
-              selected.setTint()
+              selected.children.each(container => container.each(p => p.setTint()))
               selected.clear()
               foreground.each(child => {
                 table.add(child)
               })
               selected.add(this)
-              this.setTint(0xFFFF00)
+              this.each(p => p.setTint(0xFFFF00))
               foreground.add(this)
             }
           }
         })
-        piece.on('drag', function (pointer, dragX, dragY) {
+        container.on('drag', function (pointer, dragX, dragY) {
           if (selected.contains(this)) {
             selected.incXY(
               dragX - this.x,
@@ -198,8 +205,8 @@ class Scene extends Phaser.Scene {
             )
           }
         })
-        piece.setScale(0)
-        toRandomise.push(piece)
+        container.setScale(0)
+        toRandomise.push(container)
       }
     }
 
@@ -214,12 +221,6 @@ class Scene extends Phaser.Scene {
       props: {
         scale: {from: 0.2, to: 1},
         angle: {from: 360, to: 0},
-        x: {
-          getEnd: p => p.getData("x") * PIECE_WIDTH - WIDTH_OVERLAP,
-        },
-        y: {
-          getEnd: p => p.getData("y") * PIECE_HEIGHT  - HEIGHT_OVERLAP,
-        },
       },
       //ease: 'linear',
       duration: 500,
