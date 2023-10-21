@@ -190,15 +190,21 @@ class Scene extends Phaser.Scene {
     for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
       for (let x = 0; x < WIDTH_IN_PIECES; x++) {
         const frameNumber = this.pieceIndex(x, y)
+        const xOffset = x * PIECE_WIDTH - WIDTH_OVERLAP
+        const yOffset = y * PIECE_HEIGHT - HEIGHT_OVERLAP
         const piece =
           this.make.image({
-              x: x * PIECE_WIDTH - WIDTH_OVERLAP,
-              y: y * PIECE_HEIGHT - HEIGHT_OVERLAP,
+              x: xOffset,
+              y: yOffset,
               key: "pieces",
               frame: frameNumber,
             }, false,
           )
-        const container = this.add.container(0, 0, piece)
+        const container = this.add.container(
+          Phaser.Math.Between(- xOffset, WIDTH - xOffset - PIECE_WIDTH), 
+          Phaser.Math.Between(- yOffset, HEIGHT - yOffset - PIECE_HEIGHT),
+          piece
+        )
         grid[x][y] = container
         piece.setSize(PIECE_WIDTH, PIECE_HEIGHT)
         piece.setData("x", x)
