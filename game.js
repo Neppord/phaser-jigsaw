@@ -2,7 +2,8 @@ const WIDTH = 1920
 const HEIGHT = 1080
 const WIDTH_IN_PIECES = 16
 const HEIGHT_IN_PIECES = 9
-console.log("Pieces: ", WIDTH_IN_PIECES * HEIGHT_IN_PIECES)
+const PIECES = WIDTH_IN_PIECES * HEIGHT_IN_PIECES
+console.log("Pieces: ", PIECES)
 console.log("Width: ", WIDTH_IN_PIECES)
 console.log("Height: ", HEIGHT_IN_PIECES)
 const PIECE_WIDTH = WIDTH / WIDTH_IN_PIECES
@@ -168,8 +169,6 @@ class Scene extends Phaser.Scene {
     let zoomLvl = 1000
     this.input.on(Phaser.Input.Events.POINTER_WHEEL, (p, o, x, y, z) => {
       if (shift.isDown) {
-        console.log("zoomLvl", zoomLvl)
-        console.log("y", y)
         zoomLvl = Math.max(250, Math.min(4000, zoomLvl - y))
         this.cameras.main.zoom = zoomLvl / 1000
       } else {
@@ -273,6 +272,11 @@ class Scene extends Phaser.Scene {
           })
           if (didConnect) {
             this.sound.play("connect")
+            if (selected.children.getArray()[0].getAll().length === PIECES ) {
+              foreground.postFX.addShine()
+              table.postFX.addShine()
+              this.cameras.main.fadeIn()
+            }
           }
         })
         container.setScale(0)
