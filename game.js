@@ -126,32 +126,45 @@ class Scene extends Phaser.Scene {
       }
     }
     jigsaw.destroy(true)
-
-    const facit = this.add.image(0, 0, "jigsaw")
     const selected = this.add.group()
     const table = this.add.layer()
     const foreground = this.add.layer()
     foreground.bringToTop()
     foreground.postFX.addGlow(0xFFFF00)
 
-    facit.setOrigin(0)
-    facit.setAlpha(0.5)
-    facit.setInteractive()
-    facit.on("pointerdown", () => {
-      selected.children.each(container => container.each(p => p.setTint()))
-      selected.clear()
-      table.add(foreground.getChildren().map(o => o))
+    this.input.on("pointerdown", (pointer, objects) => {
+      if (objects.length === 0) {
+        let moved = false
+        let scrollXStart = this.cameras.main.scrollX
+        let scrollYStart = this.cameras.main.scrollY
+        let move = (pointer) => {
+          moved = true
+          const xDelta = pointer.x - pointer.downX
+          const yDelta = pointer.y - pointer.downY
+          this.cameras.main.scrollX = scrollXStart - xDelta
+          this.cameras.main.scrollY = scrollYStart - yDelta
+        }
+        this.input.on(Phaser.Input.Events.POINTER_MOVE, move)
+        this.input.once("pointerup", () => {
+          if (!moved) {
+            selected.children.each(container => container.each(p => p.setTint()))
+            selected.clear()
+            table.add(foreground.getChildren().map(o => o))
+          }
+          this.input.off(Phaser.Input.Events.POINTER_MOVE, move)
+        })
+      }
     })
     const shift = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.SHIFT
+      Phaser.Input.Keyboard.KeyCodes.SHIFT,
     )
     let zoomLvl = 1000
-    this.input.on(Phaser.Input.Events.POINTER_WHEEL, (p, o , x, y, z) => {
+    this.input.on(Phaser.Input.Events.POINTER_WHEEL, (p, o, x, y, z) => {
       if (shift.isDown) {
         console.log("zoomLvl", zoomLvl)
         console.log("y", y)
         zoomLvl = Math.max(250, Math.min(4000, zoomLvl - y))
-        this.cameras.main.zoom = zoomLvl/1000
+        this.cameras.main.zoom = zoomLvl / 1000
       } else {
         this.cameras.main.scrollX += x
         this.cameras.main.scrollY += y
