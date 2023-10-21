@@ -166,7 +166,8 @@ class Scene extends Phaser.Scene {
     const shift = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.SHIFT,
     )
-    let zoomLvl = 1000
+    let zoomLvl = 800
+    this.cameras.main.zoom = zoomLvl / 1000
     this.input.on(Phaser.Input.Events.POINTER_WHEEL, (p, o, x, y, z) => {
       if (shift.isDown) {
         zoomLvl = Math.max(250, Math.min(4000, zoomLvl - y))
