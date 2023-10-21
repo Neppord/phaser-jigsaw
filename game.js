@@ -155,6 +155,13 @@ class Scene extends Phaser.Scene {
         })
       }
     })
+    let lastClick = -1
+    this.input.on("pointerup", (pointer) => {
+      if (pointer.upTime - lastClick < 500) {
+        this.scale.toggleFullscreen()
+      }
+      lastClick = pointer.upTime
+    })
     const shift = this.input.keyboard.addKey(
       Phaser.Input.Keyboard.KeyCodes.SHIFT,
     )
@@ -295,7 +302,7 @@ new Phaser.Game({
     },
   },
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.ENVELOP,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: WIDTH,
     height: HEIGHT,
