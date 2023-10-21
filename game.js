@@ -18,6 +18,7 @@ console.log("Piece Height: ", PIECE_HEIGHT)
 class Scene extends Phaser.Scene {
   preload() {
     this.load.image("jigsaw", "ship-1366926_1920.jpg")
+    this.load.audio("connect", "connect.wav")
   }
 
   pieceIndex(x, y) {
@@ -209,6 +210,7 @@ class Scene extends Phaser.Scene {
           }
         })
         container.on('dragend', () => {
+          let didConnect = false
           selected.children.each(c => {
             c.each(p => {
               const gridX = p.getData("x")
@@ -226,14 +228,17 @@ class Scene extends Phaser.Scene {
                   other.each(op => {
                     grid[op.getData("x")][op.getData("y")] = c
                     c.add(op)
+                    didConnect = true
                   })
                   other.removeAll()
                   const hitAreas = c.getData("hitAreas")
                   other.getData("hitAreas").forEach(ha => hitAreas.push(ha))
                 })
             })
-            
           })
+          if (didConnect) {
+            this.sound.play("connect")
+          }
         })
         container.setScale(0)
         toRandomise.push(container)
