@@ -1,7 +1,7 @@
 const WIDTH = 1920
 const HEIGHT = 1080
-const WIDTH_IN_PIECES = 16 * 8
-const HEIGHT_IN_PIECES = 9 * 8
+const WIDTH_IN_PIECES = 16 * 4
+const HEIGHT_IN_PIECES = 9 * 4
 console.log("Pieces: ", WIDTH_IN_PIECES * HEIGHT_IN_PIECES)
 console.log("Width: ", WIDTH_IN_PIECES)
 console.log("Height: ", HEIGHT_IN_PIECES)
@@ -131,6 +131,7 @@ class Scene extends Phaser.Scene {
     const table = this.add.layer()
     const foreground = this.add.layer()
     foreground.bringToTop()
+    foreground.postFX.addGlow(0xFFFF00)
 
     facit.setOrigin(0)
     facit.setAlpha(0.5)
@@ -138,7 +139,7 @@ class Scene extends Phaser.Scene {
     facit.on("pointerdown", () => {
       selected.children.each(container => container.each(p => p.setTint()))
       selected.clear()
-      foreground.each(child => table.add(child))
+      table.add(foreground.getChildren().map(o => o))
     })
     const toRandomise = []
     const grid = new Array(WIDTH_IN_PIECES)
@@ -146,7 +147,6 @@ class Scene extends Phaser.Scene {
       .map(() => new Array(HEIGHT_IN_PIECES))
 
     function addContainer(c) {
-      c.each(p => p.setTint(0xFFFF00))
       selected.add(c)
       foreground.add(c)
     }
@@ -194,14 +194,9 @@ class Scene extends Phaser.Scene {
             if (shift.isDown) {
               addContainer(this)
             } else {
-              selected.children.each(container => container.each(p => p.setTint()))
               selected.clear()
-              foreground.each(child => {
-                table.add(child)
-              })
-              selected.add(this)
-              this.each(p => p.setTint(0xFFFF00))
-              foreground.add(this)
+              table.add(foreground.getChildren().map(o => o))
+              addContainer(this)
             }
           }
         })
@@ -231,7 +226,6 @@ class Scene extends Phaser.Scene {
                   other.each(op => {
                     grid[op.getData("x")][op.getData("y")] = c
                     c.add(op)
-                    op.setTint(0xFFFF00)
                   })
                   other.removeAll()
                   const hitAreas = c.getData("hitAreas")
@@ -245,13 +239,6 @@ class Scene extends Phaser.Scene {
         toRandomise.push(container)
       }
     }
-    this.input.keyboard.on(Phaser.Input.Keyboard.Events.ANY_KEY_UP, (event) => {
-      for (let i = 0; i < 1000; i++) {
-        let container = Phaser.Math.RND.pick(table.getChildren())
-        if (container) addContainer(container)
-        else break
-      }
-    })
     this.tweens.add({
       targets: toRandomise,
       props: {
