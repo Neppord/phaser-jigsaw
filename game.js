@@ -1,7 +1,7 @@
 const WIDTH = 1920
 const HEIGHT = 1080
-const WIDTH_IN_PIECES = 16 * 4
-const HEIGHT_IN_PIECES = 9 * 4
+const WIDTH_IN_PIECES = 16
+const HEIGHT_IN_PIECES = 9
 console.log("Pieces: ", WIDTH_IN_PIECES * HEIGHT_IN_PIECES)
 console.log("Width: ", WIDTH_IN_PIECES)
 console.log("Height: ", HEIGHT_IN_PIECES)
@@ -142,6 +142,21 @@ class Scene extends Phaser.Scene {
       selected.clear()
       table.add(foreground.getChildren().map(o => o))
     })
+    const shift = this.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SHIFT
+    )
+    let zoomLvl = 1000
+    this.input.on(Phaser.Input.Events.POINTER_WHEEL, (p, o , x, y, z) => {
+      if (shift.isDown) {
+        console.log("zoomLvl", zoomLvl)
+        console.log("y", y)
+        zoomLvl = Math.max(250, Math.min(4000, zoomLvl - y))
+        this.cameras.main.zoom = zoomLvl/1000
+      } else {
+        this.cameras.main.scrollX += x
+        this.cameras.main.scrollY += y
+      }
+    })
     const toRandomise = []
     const grid = new Array(WIDTH_IN_PIECES)
       .fill([])
@@ -151,7 +166,7 @@ class Scene extends Phaser.Scene {
       selected.add(c)
       foreground.add(c)
     }
-    
+
     for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
       for (let x = 0; x < WIDTH_IN_PIECES; x++) {
         const frameNumber = this.pieceIndex(x, y)
