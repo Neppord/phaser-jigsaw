@@ -42,10 +42,10 @@ class Scene extends Phaser.Scene {
   piecePoints(x, y) {
     const points = []
     const dim = puzzle.piece
-    points.push([dim.width_overlap, dim.height_overlap])
+    points.push([dim.x(0), dim.y(0)])
     // TOP
     if (y === 0) {
-      points.push([dim.total_width - dim.width_overlap, dim.height_overlap])
+      points.push([dim.x(1), dim.y(0)])
     } else {
       const ys = this.vertical(x, y)
       const dx = 1 / (ys.length + 1)
@@ -55,11 +55,11 @@ class Scene extends Phaser.Scene {
           dim.height_overlap * (1 + ys[i])],
         )
       }
-      points.push([dim.width_overlap + dim.width, dim.height_overlap])
+      points.push([dim.x(1), dim.y(0)])
     }
     // RIGHT
     if (x === puzzle.width_in_pieces - 1) {
-      points.push([dim.width + dim.width_overlap, dim.height_overlap + dim.height])
+      points.push([dim.x(1), dim.y(1)])
     } else {
       const xs = this.horizontal(x + 1, y)
       const dy = 1 / (xs.length + 1)
@@ -69,11 +69,11 @@ class Scene extends Phaser.Scene {
           dim.height_overlap + dim.height * ((i + 1) * dy),
         ])
       }
-      points.push([dim.width + dim.width_overlap, dim.height_overlap + dim.height])
+      points.push([dim.x(1), dim.y(1)])
     }
     // BOTTOM
     if (y === puzzle.height_in_pieces - 1) {
-      points.push([dim.width_overlap, dim.height + dim.height_overlap])
+      points.push([dim.x(0), dim.y(1)])
     } else {
       const ys = this.vertical(x, y + 1)
       const dx = 1 / (ys.length + 1)
@@ -83,11 +83,11 @@ class Scene extends Phaser.Scene {
           dim.height + dim.height_overlap * (1 + ys[i]),
         ])
       }
-      points.push([dim.width_overlap, dim.height + dim.height_overlap])
+      points.push([dim.x(0), dim.y(1)])
     }
     // LEFT
     if (x === 0) {
-      points.push([dim.width_overlap, dim.height_overlap])
+      points.push([dim.x(0), dim.y(0)])
     } else {
       const xs = this.horizontal(x, y)
       const dy = 1 / (xs.length + 1)
@@ -97,7 +97,7 @@ class Scene extends Phaser.Scene {
           dim.height_overlap + dim.height * ((i + 1) * dy),
         ])
       }
-      points.push([dim.width_overlap, dim.height_overlap])
+      points.push([dim.x(0), dim.y(0)])
     }
     return points
 

@@ -40,4 +40,12 @@ export class Piece {
     this.total_width = width + 2 * width_overlap
     this.total_height = height + 2 * height_overlap
   }
+  
+  x(t) {
+    return this.width_overlap + t * this.width
+  }
+  
+  y(t) {
+    return this.height_overlap + t * this.height
+  }
 }
