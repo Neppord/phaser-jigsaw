@@ -53,11 +53,14 @@ class Scene extends Phaser.Scene {
     if (y === 0) {
       points.push([TOTAL_PIECE_WIDTH - WIDTH_OVERLAP, HEIGHT_OVERLAP])
     } else {
-      const [y1, y2, y3, y4] = this.vertical(x, y)
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.20, HEIGHT_OVERLAP * (1 + y1)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.40, HEIGHT_OVERLAP * (1 + y2)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.60, HEIGHT_OVERLAP * (1 + y3)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.80, HEIGHT_OVERLAP * (1 + y4)])
+      const ys = this.vertical(x, y)
+      const dx = 1 / (ys.length + 1)
+      for (let i = 0; i < ys.length; i++) {
+        points.push([
+          WIDTH_OVERLAP + PIECE_WIDTH * (dx * (i + 1)),
+          HEIGHT_OVERLAP * (1 + ys[i])]
+        )
+      }
       points.push([WIDTH_OVERLAP + PIECE_WIDTH, HEIGHT_OVERLAP])
     }
     // RIGHT
@@ -65,11 +68,11 @@ class Scene extends Phaser.Scene {
       points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
     } else {
       const xs = this.horizontal(x + 1, y)
-      const yd = xs.length + 1
+      const dy = 1 / (xs.length + 1)
       for (let i = 0; i < xs.length; i++) {
         points.push([
           PIECE_WIDTH + WIDTH_OVERLAP * (1 + xs[i]),
-          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) / yd),
+          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) * dy),
         ])
       }
       points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
@@ -78,11 +81,14 @@ class Scene extends Phaser.Scene {
     if (y === HEIGHT_IN_PIECES - 1) {
       points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
     } else {
-      const [y1, y2, y3, y4] = this.vertical(x, y + 1)
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.80, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y4)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.60, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y3)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.40, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y2)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.20, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y1)])
+      const ys = this.vertical(x, y)
+      const dx = 1 / (ys.length + 1)
+      for (let i = ys.length - 1; i >= 0; i++) {
+        points.push([
+          WIDTH_OVERLAP + PIECE_WIDTH * (dx * (i + 1)),
+          PIECE_HEIGHT +HEIGHT_OVERLAP * (1 + ys[i])]
+        )
+      }
       points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
     }
     // LEFT
