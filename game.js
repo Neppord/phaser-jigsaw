@@ -96,11 +96,11 @@ class Scene extends Phaser.Scene {
       points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
     } else {
       const xs = this.horizontal(x, y)
-      const yd = xs.length + 1
+      const dy = 1 / (xs.length + 1)
       for (let i = xs.length - 1; i >= 0; i--) {
         points.push([
           WIDTH_OVERLAP * (1 + xs[i]),
-          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) / yd),
+          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) *  dy),
         ])
       }
       points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
