@@ -46,9 +46,10 @@ class Scene extends Phaser.Scene {
       points.push([TOTAL_PIECE_WIDTH - WIDTH_OVERLAP, HEIGHT_OVERLAP])
     } else {
       const [y1, y2, y3, y4] = this.horizontal(x, y)
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.25, HEIGHT_OVERLAP * (1 + y1)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.50, HEIGHT_OVERLAP * (1 - y2)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.75, HEIGHT_OVERLAP * (1 + y3)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.20, HEIGHT_OVERLAP * (1 + y1)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.40, HEIGHT_OVERLAP * (1 - y2)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.60, HEIGHT_OVERLAP * (1 - y3)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.80, HEIGHT_OVERLAP * (1 + y4)])
       points.push([WIDTH_OVERLAP + PIECE_WIDTH, HEIGHT_OVERLAP])
     }
     // RIGHT
@@ -56,9 +57,10 @@ class Scene extends Phaser.Scene {
       points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
     } else {
       const [x1, x2, x3, x4] = this.horizontal(x + 1, y)
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 + x1), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.25])
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 - x2), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.50])
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 + x3), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.75])
+      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 + x1), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.20])
+      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 - x2), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.40])
+      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 - x3), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.60])
+      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 + x4), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.80])
       points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
     }
     // BOTTOM
@@ -66,9 +68,10 @@ class Scene extends Phaser.Scene {
       points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
     } else {
       const [y1, y2, y3, y4] = this.horizontal(x, y + 1)
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.75, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y3)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.50, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 - y2)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.25, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y1)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.80, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y4)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.60, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 - y3)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.40, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 - y2)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.20, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y1)])
       points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
     }
     // LEFT
@@ -76,9 +79,10 @@ class Scene extends Phaser.Scene {
       points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
     } else {
       const [x1, x2, x3, x4] = this.horizontal(x, y)
-      points.push([WIDTH_OVERLAP * (1 + x3), PIECE_HEIGHT * 0.75 + HEIGHT_OVERLAP])
-      points.push([WIDTH_OVERLAP * (1 - x2), PIECE_HEIGHT * 0.50 + HEIGHT_OVERLAP])
-      points.push([WIDTH_OVERLAP * (1 + x1), PIECE_HEIGHT * 0.25 + HEIGHT_OVERLAP])
+      points.push([WIDTH_OVERLAP * (1 + x4), PIECE_HEIGHT * 0.80 + HEIGHT_OVERLAP])
+      points.push([WIDTH_OVERLAP * (1 - x3), PIECE_HEIGHT * 0.60 + HEIGHT_OVERLAP])
+      points.push([WIDTH_OVERLAP * (1 - x2), PIECE_HEIGHT * 0.40 + HEIGHT_OVERLAP])
+      points.push([WIDTH_OVERLAP * (1 + x1), PIECE_HEIGHT * 0.20 + HEIGHT_OVERLAP])
       points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
     }
     return points
