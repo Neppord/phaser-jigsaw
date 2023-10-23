@@ -1,7 +1,7 @@
 const WIDTH = 1920
 const HEIGHT = 1080
-const WIDTH_IN_PIECES = 16
-const HEIGHT_IN_PIECES = 9
+const WIDTH_IN_PIECES = 16 / 4
+const HEIGHT_IN_PIECES = 9 / 3
 const PIECES = WIDTH_IN_PIECES * HEIGHT_IN_PIECES
 console.log("Pieces: ", PIECES)
 console.log("Width: ", WIDTH_IN_PIECES)
@@ -35,7 +35,7 @@ class Scene extends Phaser.Scene {
   horizontal(x, y) {
     const index = this.pieceIndex(x, y) << 8
     const rnd = new Phaser.Math.RandomDataGenerator([index])
-    return [rnd.frac(), rnd.frac(), rnd.frac(), rnd.frac()]
+    return [rnd.frac(), - rnd.frac(), - rnd.frac(), rnd.frac()]
   }
 
   piecePoints(x, y) {
@@ -56,11 +56,15 @@ class Scene extends Phaser.Scene {
     if (x === WIDTH_IN_PIECES - 1) {
       points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
     } else {
-      const [x1, x2, x3, x4] = this.horizontal(x + 1, y)
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 + x1), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.20])
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 - x2), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.40])
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 - x3), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.60])
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP * (1 + x4), HEIGHT_OVERLAP + PIECE_HEIGHT * 0.80])
+      const xs = this.horizontal(x + 1, y)
+      const yd = xs.length + 1
+      for (let i = 0; i < xs.length; i++) {
+        const point = [
+          PIECE_WIDTH + WIDTH_OVERLAP * (1 + xs[i]),
+          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) / yd),
+        ]
+        points.push(point)
+      }
       points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
     }
     // BOTTOM
@@ -78,11 +82,15 @@ class Scene extends Phaser.Scene {
     if (x === 0) {
       points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
     } else {
-      const [x1, x2, x3, x4] = this.horizontal(x, y)
-      points.push([WIDTH_OVERLAP * (1 + x4), PIECE_HEIGHT * 0.80 + HEIGHT_OVERLAP])
-      points.push([WIDTH_OVERLAP * (1 - x3), PIECE_HEIGHT * 0.60 + HEIGHT_OVERLAP])
-      points.push([WIDTH_OVERLAP * (1 - x2), PIECE_HEIGHT * 0.40 + HEIGHT_OVERLAP])
-      points.push([WIDTH_OVERLAP * (1 + x1), PIECE_HEIGHT * 0.20 + HEIGHT_OVERLAP])
+      const xs = this.horizontal(x, y)
+      const yd = xs.length + 1
+      for (let i = xs.length - 1; i >= 0; i--) {
+        const point = [
+          WIDTH_OVERLAP * (1 + xs[i]),
+          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) / yd),
+        ]
+        points.push(point)
+      }
       points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
     }
     return points
@@ -205,9 +213,9 @@ class Scene extends Phaser.Scene {
             }, false,
           )
         const container = this.add.container(
-          Phaser.Math.Between(- xOffset, WIDTH - xOffset - PIECE_WIDTH), 
-          Phaser.Math.Between(- yOffset, HEIGHT - yOffset - PIECE_HEIGHT),
-          piece
+          Phaser.Math.Between(-xOffset, WIDTH - xOffset - PIECE_WIDTH),
+          Phaser.Math.Between(-yOffset, HEIGHT - yOffset - PIECE_HEIGHT),
+          piece,
         )
         grid[x][y] = container
         piece.setSize(PIECE_WIDTH, PIECE_HEIGHT)
@@ -283,7 +291,7 @@ class Scene extends Phaser.Scene {
           })
           if (didConnect) {
             this.sound.play("connect")
-            if (selected.children.getArray()[0].getAll().length === PIECES ) {
+            if (selected.children.getArray()[0].getAll().length === PIECES) {
               foreground.postFX.addShine()
               table.postFX.addShine()
               this.cameras.main.fadeIn()
