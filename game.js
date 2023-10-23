@@ -29,7 +29,11 @@ class Scene extends Phaser.Scene {
   vertical(x, y) {
     const index = this.pieceIndex(x, y)
     const rnd = new Phaser.Math.RandomDataGenerator([index])
-    return [rnd.frac(), rnd.frac(), rnd.frac(), rnd.frac()]
+    if (rnd.frac() > 0.5) {
+      return [rnd.frac(), - rnd.frac(), - rnd.frac(), rnd.frac()]
+    } else {
+      return [- rnd.frac(), rnd.frac(),  rnd.frac(), -rnd.frac()]
+    }
   }
 
   horizontal(x, y) {
@@ -49,10 +53,10 @@ class Scene extends Phaser.Scene {
     if (y === 0) {
       points.push([TOTAL_PIECE_WIDTH - WIDTH_OVERLAP, HEIGHT_OVERLAP])
     } else {
-      const [y1, y2, y3, y4] = this.horizontal(x, y)
+      const [y1, y2, y3, y4] = this.vertical(x, y)
       points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.20, HEIGHT_OVERLAP * (1 + y1)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.40, HEIGHT_OVERLAP * (1 - y2)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.60, HEIGHT_OVERLAP * (1 - y3)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.40, HEIGHT_OVERLAP * (1 + y2)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.60, HEIGHT_OVERLAP * (1 + y3)])
       points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.80, HEIGHT_OVERLAP * (1 + y4)])
       points.push([WIDTH_OVERLAP + PIECE_WIDTH, HEIGHT_OVERLAP])
     }
@@ -75,10 +79,10 @@ class Scene extends Phaser.Scene {
     if (y === HEIGHT_IN_PIECES - 1) {
       points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
     } else {
-      const [y1, y2, y3, y4] = this.horizontal(x, y + 1)
+      const [y1, y2, y3, y4] = this.vertical(x, y + 1)
       points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.80, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y4)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.60, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 - y3)])
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.40, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 - y2)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.60, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y3)])
+      points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.40, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y2)])
       points.push([WIDTH_OVERLAP + PIECE_WIDTH * 0.20, PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + y1)])
       points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
     }
