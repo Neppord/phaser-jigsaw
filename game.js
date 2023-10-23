@@ -67,11 +67,10 @@ class Scene extends Phaser.Scene {
       const xs = this.horizontal(x + 1, y)
       const yd = xs.length + 1
       for (let i = 0; i < xs.length; i++) {
-        const point = [
+        points.push([
           PIECE_WIDTH + WIDTH_OVERLAP * (1 + xs[i]),
           HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) / yd),
-        ]
-        points.push(point)
+        ])
       }
       points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
     }
@@ -93,11 +92,10 @@ class Scene extends Phaser.Scene {
       const xs = this.horizontal(x, y)
       const yd = xs.length + 1
       for (let i = xs.length - 1; i >= 0; i--) {
-        const point = [
+        points.push([
           WIDTH_OVERLAP * (1 + xs[i]),
           HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) / yd),
-        ]
-        points.push(point)
+        ])
       }
       points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
     }
