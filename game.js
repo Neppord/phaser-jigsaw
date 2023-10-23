@@ -272,12 +272,12 @@ class Scene extends Phaser.Scene {
             c.each(p => {
               const gridX = p.getData("x")
               const gridY = p.getData("y")
-              const candidates = []
-              if (gridX < WIDTH_IN_PIECES - 1) candidates.push(grid[gridX + 1][gridY])
-              if (gridX > 0) candidates.push(grid[gridX - 1][gridY])
-              if (gridY < HEIGHT_IN_PIECES - 1) candidates.push(grid[gridX][gridY + 1])
-              if (gridY > 0) candidates.push(grid[gridX][gridY - 1])
-              candidates
+              const candidates = new Set()
+              if (gridX < WIDTH_IN_PIECES - 1) candidates.add(grid[gridX + 1][gridY])
+              if (gridX > 0) candidates.add(grid[gridX - 1][gridY])
+              if (gridY < HEIGHT_IN_PIECES - 1) candidates.add(grid[gridX][gridY + 1])
+              if (gridY > 0) candidates.add(grid[gridX][gridY - 1])
+              Array.from(candidates)
                 .filter(other => other !== c)
                 .filter(other => Math.abs(c.x - other.x) < WIDTH_OVERLAP)
                 .filter(other => Math.abs(c.y - other.y) < HEIGHT_OVERLAP)
@@ -290,6 +290,7 @@ class Scene extends Phaser.Scene {
                   other.removeAll()
                   const hitAreas = c.getData("hitAreas")
                   other.getData("hitAreas").forEach(ha => hitAreas.push(ha))
+                  other.destroy(true)
                 })
             })
           })
