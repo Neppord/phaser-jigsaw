@@ -35,7 +35,11 @@ class Scene extends Phaser.Scene {
   horizontal(x, y) {
     const index = this.pieceIndex(x, y) << 8
     const rnd = new Phaser.Math.RandomDataGenerator([index])
-    return [rnd.frac(), - rnd.frac(), - rnd.frac(), rnd.frac()]
+    if (rnd.frac() > 0.5) {
+      return [rnd.frac(), - rnd.frac(), - rnd.frac(), rnd.frac()]
+    } else {
+      return [- rnd.frac(), rnd.frac(),  rnd.frac(), -rnd.frac()]
+    }
   }
 
   piecePoints(x, y) {
