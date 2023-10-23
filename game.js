@@ -42,16 +42,18 @@ class Scene extends Phaser.Scene {
   piecePoints(x, y) {
     const points = []
     const dim = puzzle.piece
-    const delta = 0.20
+    const delta = 0.05
+    const strength = 2.5
     points.push([dim.x(0), dim.y(0)])
     // TOP
+    const interpolate = Phaser.Math.Interpolation.Bezier
     if (y === 0) {
       points.push([dim.x(1), dim.y(0)])
     } else {
       const ys = this.vertical(x, y)
       const with_edges = [0, ...ys, 0]
       for (let i = delta; i < 1; i += delta) {
-        const mix = Phaser.Math.Interpolation.Linear(with_edges, i)
+        const mix = interpolate(with_edges, i) * strength
         const offset = mix * dim.height_overlap
         points.push([dim.x(i), dim.y(0) + offset])
       }
@@ -64,7 +66,7 @@ class Scene extends Phaser.Scene {
       const xs = this.horizontal(x + 1, y)
       const with_edges = [0, ...xs, 0]
       for (let i = delta; i < 1; i += delta) {
-        const mix = Phaser.Math.Interpolation.Linear(with_edges, i)
+        const mix = interpolate(with_edges, i) * strength
         const offset = mix * dim.width_overlap
         points.push([dim.x(1) + offset, dim.y(i)])
       }
@@ -77,7 +79,7 @@ class Scene extends Phaser.Scene {
       const ys = this.vertical(x, y + 1)
       const with_edges = [0, ...ys, 0]
       for (let i = 1 - delta; i >= 0; i -= delta) {
-        const mix = Phaser.Math.Interpolation.Linear(with_edges, i)
+        const mix = interpolate(with_edges, i) * strength
         const offset = mix * dim.height_overlap
         points.push([dim.x(i), dim.y(1) + offset])
       }
@@ -90,7 +92,7 @@ class Scene extends Phaser.Scene {
       const xs = this.horizontal(x, y)
       const with_edges = [0, ...xs, 0]
       for (let i = 1 - delta; i >= 0; i -= delta) {
-        const mix = Phaser.Math.Interpolation.Linear(with_edges, i)
+        const mix = interpolate(with_edges, i) * strength
         const offset = mix * dim.width_overlap
         points.push([
           dim.x(0) + offset,
