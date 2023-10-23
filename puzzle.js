@@ -20,8 +20,8 @@ export class Puzzle {
     this.piece = new Piece(
       piece_width,
       piece_height,
-      piece_width / 5,
-      piece_height / 5
+      piece_width / 3,
+      piece_height / 3
     )
   }
 }
