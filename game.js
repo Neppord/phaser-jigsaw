@@ -41,63 +41,63 @@ class Scene extends Phaser.Scene {
 
   piecePoints(x, y) {
     const points = []
-    const piece = puzzle.piece
-    points.push([piece.width_overlap, piece.height_overlap])
+    const dim = puzzle.piece
+    points.push([dim.width_overlap, dim.height_overlap])
     // TOP
     if (y === 0) {
-      points.push([piece.total_width - piece.width_overlap, piece.height_overlap])
+      points.push([dim.total_width - dim.width_overlap, dim.height_overlap])
     } else {
       const ys = this.vertical(x, y)
       const dx = 1 / (ys.length + 1)
       for (let i = 0; i < ys.length; i++) {
         points.push([
-          piece.width_overlap + piece.width * (dx * (i + 1)),
-          piece.height_overlap * (1 + ys[i])],
+          dim.width_overlap + dim.width * (dx * (i + 1)),
+          dim.height_overlap * (1 + ys[i])],
         )
       }
-      points.push([piece.width_overlap + piece.width, piece.height_overlap])
+      points.push([dim.width_overlap + dim.width, dim.height_overlap])
     }
     // RIGHT
     if (x === puzzle.width_in_pieces - 1) {
-      points.push([piece.width + piece.width_overlap, piece.height_overlap + piece.height])
+      points.push([dim.width + dim.width_overlap, dim.height_overlap + dim.height])
     } else {
       const xs = this.horizontal(x + 1, y)
       const dy = 1 / (xs.length + 1)
       for (let i = 0; i < xs.length; i++) {
         points.push([
-          piece.width + piece.width_overlap * (1 + xs[i]),
-          piece.height_overlap + piece.height * ((i + 1) * dy),
+          dim.width + dim.width_overlap * (1 + xs[i]),
+          dim.height_overlap + dim.height * ((i + 1) * dy),
         ])
       }
-      points.push([piece.width + piece.width_overlap, piece.height_overlap + piece.height])
+      points.push([dim.width + dim.width_overlap, dim.height_overlap + dim.height])
     }
     // BOTTOM
     if (y === puzzle.height_in_pieces - 1) {
-      points.push([piece.width_overlap, piece.height + piece.height_overlap])
+      points.push([dim.width_overlap, dim.height + dim.height_overlap])
     } else {
       const ys = this.vertical(x, y + 1)
       const dx = 1 / (ys.length + 1)
       for (let i = ys.length - 1; i >= 0; i--) {
         points.push([
-          piece.width_overlap + piece.width * (dx * (i + 1)),
-          piece.height + piece.height_overlap * (1 + ys[i]),
+          dim.width_overlap + dim.width * (dx * (i + 1)),
+          dim.height + dim.height_overlap * (1 + ys[i]),
         ])
       }
-      points.push([piece.width_overlap, piece.height + piece.height_overlap])
+      points.push([dim.width_overlap, dim.height + dim.height_overlap])
     }
     // LEFT
     if (x === 0) {
-      points.push([piece.width_overlap, piece.height_overlap])
+      points.push([dim.width_overlap, dim.height_overlap])
     } else {
       const xs = this.horizontal(x, y)
       const dy = 1 / (xs.length + 1)
       for (let i = xs.length - 1; i >= 0; i--) {
         points.push([
-          piece.width_overlap * (1 + xs[i]),
-          piece.height_overlap + piece.height * ((i + 1) * dy),
+          dim.width_overlap * (1 + xs[i]),
+          dim.height_overlap + dim.height * ((i + 1) * dy),
         ])
       }
-      points.push([piece.width_overlap, piece.height_overlap])
+      points.push([dim.width_overlap, dim.height_overlap])
     }
     return points
 
@@ -113,11 +113,12 @@ class Scene extends Phaser.Scene {
   }
 
   create() {
+    const dim = puzzle.piece
     const atlas = this.textures
       .addDynamicTexture(
         "pieces",
-        puzzle.width_in_pieces * puzzle.piece.total_width,
-        puzzle.height_in_pieces * puzzle.piece.total_height,
+        puzzle.width_in_pieces * dim.total_width,
+        puzzle.height_in_pieces * dim.total_height,
       )
     atlas.fill(0x000000, 0)
     const jigsaw = this.make
@@ -126,21 +127,21 @@ class Scene extends Phaser.Scene {
     for (let y = 0; y < puzzle.height_in_pieces; y++) {
       for (let x = 0; x < puzzle.width_in_pieces; x++) {
         const m = this.makePieceShape(x, y)
-        m.setPosition(puzzle.piece.total_width * x, puzzle.piece.total_height * y)
+        m.setPosition(dim.total_width * x, dim.total_height * y)
         jigsaw.setMask(m.createGeometryMask())
         atlas.draw(
           jigsaw,
-          puzzle.piece.width_overlap + 2 * puzzle.piece.width_overlap * x,
-          puzzle.piece.height_overlap + 2 * puzzle.piece.height_overlap * y,
+          dim.width_overlap + 2 * dim.width_overlap * x,
+          dim.height_overlap + 2 * dim.height_overlap * y,
         )
         jigsaw.clearMask(true)
         atlas.add(
           y * puzzle.width_in_pieces + x,
           0,
-          puzzle.piece.total_width * x,
-          puzzle.piece.total_height * y,
-          puzzle.piece.total_width,
-          puzzle.piece.total_height,
+          dim.total_width * x,
+          dim.total_height * y,
+          dim.total_width,
+          dim.total_height,
         )
       }
     }
@@ -208,8 +209,8 @@ class Scene extends Phaser.Scene {
     for (let y = 0; y < puzzle.height_in_pieces; y++) {
       for (let x = 0; x < puzzle.width_in_pieces; x++) {
         const frameNumber = this.pieceIndex(x, y)
-        const xOffset = x * puzzle.piece.width - puzzle.piece.width_overlap
-        const yOffset = y * puzzle.piece.height - puzzle.piece.height_overlap
+        const xOffset = x * dim.width - dim.width_overlap
+        const yOffset = y * dim.height - dim.height_overlap
         const piece =
           this.make.image({
               x: xOffset,
@@ -219,12 +220,12 @@ class Scene extends Phaser.Scene {
             }, false,
           )
         const container = this.add.container(
-          Phaser.Math.Between(-xOffset, puzzle.width - xOffset - puzzle.piece.width),
-          Phaser.Math.Between(-yOffset, puzzle.height - yOffset - puzzle.piece.height),
+          Phaser.Math.Between(-xOffset, puzzle.width - xOffset - dim.width),
+          Phaser.Math.Between(-yOffset, puzzle.height - yOffset - dim.height),
           piece,
         )
         grid[x][y] = container
-        piece.setSize(puzzle.piece.width, puzzle.piece.height)
+        piece.setSize(dim.width, dim.height)
         piece.setData("x", x)
         piece.setData("y", y)
         piece.setData("container", container)
@@ -235,8 +236,8 @@ class Scene extends Phaser.Scene {
         const hitArea = new Phaser.Geom.Polygon(points)
         Phaser.Geom.Polygon.Translate(
           hitArea,
-          x * puzzle.piece.width - puzzle.piece.width_overlap,
-          y * puzzle.piece.height - puzzle.piece.height_overlap,
+          x * dim.width - dim.width_overlap,
+          y * dim.height - dim.height_overlap,
         )
         container.setData("hitAreas", [hitArea])
         container.setInteractive({
@@ -281,8 +282,8 @@ class Scene extends Phaser.Scene {
               if (gridY > 0) candidates.add(grid[gridX][gridY - 1])
               Array.from(candidates)
                 .filter(other => other !== c)
-                .filter(other => Math.abs(c.x - other.x) < puzzle.piece.width_overlap)
-                .filter(other => Math.abs(c.y - other.y) < puzzle.piece.height_overlap)
+                .filter(other => Math.abs(c.x - other.x) < dim.width_overlap)
+                .filter(other => Math.abs(c.y - other.y) < dim.height_overlap)
                 .forEach(other => {
                   other.each(op => {
                     grid[op.getData("x")][op.getData("y")] = c
