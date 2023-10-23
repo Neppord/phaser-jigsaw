@@ -22,20 +22,20 @@ class Scene extends Phaser.Scene {
   vertical(x, y) {
     const index = this.pieceIndex(x, y)
     const rnd = new Phaser.Math.RandomDataGenerator([index])
-    if (rnd.frac() > 0.5) {
-      return [rnd.frac(), -rnd.frac(), -rnd.frac(), rnd.frac()]
-    } else {
-      return [-rnd.frac(), rnd.frac(), rnd.frac(), -rnd.frac()]
-    }
+    return this.edge(rnd)
   }
 
   horizontal(x, y) {
     const index = this.pieceIndex(x, y) << 8
     const rnd = new Phaser.Math.RandomDataGenerator([index])
+    return this.edge(rnd)
+  }
+
+  edge(rnd) {
     if (rnd.frac() > 0.5) {
-      return [rnd.frac(), -rnd.frac(), -rnd.frac(), rnd.frac()]
+      return [0, 0, 0, 0, rnd.frac(), (rnd.frac() + 0.5) * -1, (rnd.frac() + 0.5) * -1, rnd.frac(), 0, 0, 0, 0]
     } else {
-      return [-rnd.frac(), rnd.frac(), rnd.frac(), -rnd.frac()]
+      return [0, 0, 0, 0, -rnd.frac(), (rnd.frac() + 0.5) * 1, (rnd.frac() + 0.5) * 1, -rnd.frac(), 0, 0, 0, 0]
     }
   }
 
@@ -50,9 +50,8 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(1), dim.y(0)])
     } else {
       const ys = this.vertical(x, y)
-      const with_edges = [0, ...ys, 0]
       for (let i = delta; i < 1; i += delta) {
-        const mix = interpolate(with_edges, i)
+        const mix = interpolate(ys, i)
         const offset = mix * dim.height_overlap
         points.push([dim.x(i), dim.y(0) + offset])
       }
@@ -63,9 +62,8 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(1), dim.y(1)])
     } else {
       const xs = this.horizontal(x + 1, y)
-      const with_edges = [0, ...xs, 0]
       for (let i = delta; i < 1; i += delta) {
-        const mix = interpolate(with_edges, i)
+        const mix = interpolate(xs, i)
         const offset = mix * dim.width_overlap
         points.push([dim.x(1) + offset, dim.y(i)])
       }
@@ -76,9 +74,8 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(0), dim.y(1)])
     } else {
       const ys = this.vertical(x, y + 1)
-      const with_edges = [0, ...ys, 0]
       for (let i = 1 - delta; i >= 0; i -= delta) {
-        const mix = interpolate(with_edges, i)
+        const mix = interpolate(ys, i)
         const offset = mix * dim.height_overlap
         points.push([dim.x(i), dim.y(1) + offset])
       }
@@ -89,9 +86,8 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(0), dim.y(0)])
     } else {
       const xs = this.horizontal(x, y)
-      const with_edges = [0, ...xs, 0]
       for (let i = 1 - delta; i >= 0; i -= delta) {
-        const mix = interpolate(with_edges, i)
+        const mix = interpolate(xs, i)
         const offset = mix * dim.width_overlap
         points.push([
           dim.x(0) + offset,
