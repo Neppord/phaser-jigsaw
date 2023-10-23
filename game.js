@@ -6,23 +6,8 @@ const puzzle = new Puzzle(
   16 / 4,
   9 / 3,
 )
-const WIDTH = puzzle.width
-const HEIGHT = puzzle.height
-const WIDTH_IN_PIECES = puzzle.width_in_pieces
-const HEIGHT_IN_PIECES = puzzle.height_in_pieces
-const PIECES = WIDTH_IN_PIECES * HEIGHT_IN_PIECES
-console.log("Pieces: ", PIECES)
-console.log("Width: ", WIDTH_IN_PIECES)
-console.log("Height: ", HEIGHT_IN_PIECES)
-const PIECE_WIDTH = WIDTH / WIDTH_IN_PIECES
-const PIECE_HEIGHT = HEIGHT / HEIGHT_IN_PIECES
-const OVERLAP = 5
-const WIDTH_OVERLAP = PIECE_WIDTH / OVERLAP
-const HEIGHT_OVERLAP = PIECE_HEIGHT / OVERLAP
-const TOTAL_PIECE_WIDTH = PIECE_WIDTH + 2 * WIDTH_OVERLAP
-const TOTAL_PIECE_HEIGHT = PIECE_HEIGHT + 2 * HEIGHT_OVERLAP
-console.log("Piece Width: ", PIECE_WIDTH)
-console.log("Piece Height: ", PIECE_HEIGHT)
+
+console.dir(puzzle)
 
 class Scene extends Phaser.Scene {
   preload() {
@@ -31,7 +16,7 @@ class Scene extends Phaser.Scene {
   }
 
   pieceIndex(x, y) {
-    return y * WIDTH_IN_PIECES + x
+    return y * puzzle.width_in_pieces + x
   }
 
   vertical(x, y) {
@@ -56,62 +41,62 @@ class Scene extends Phaser.Scene {
 
   piecePoints(x, y) {
     const points = []
-    points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
+    points.push([puzzle.width_overlap, puzzle.height_overlap])
     // TOP
     if (y === 0) {
-      points.push([TOTAL_PIECE_WIDTH - WIDTH_OVERLAP, HEIGHT_OVERLAP])
+      points.push([puzzle.total_piece_width - puzzle.width_overlap, puzzle.height_overlap])
     } else {
       const ys = this.vertical(x, y)
       const dx = 1 / (ys.length + 1)
       for (let i = 0; i < ys.length; i++) {
         points.push([
-          WIDTH_OVERLAP + PIECE_WIDTH * (dx * (i + 1)),
-          HEIGHT_OVERLAP * (1 + ys[i])],
+          puzzle.width_overlap + puzzle.piece_width * (dx * (i + 1)),
+          puzzle.height_overlap * (1 + ys[i])],
         )
       }
-      points.push([WIDTH_OVERLAP + PIECE_WIDTH, HEIGHT_OVERLAP])
+      points.push([puzzle.width_overlap + puzzle.piece_width, puzzle.height_overlap])
     }
     // RIGHT
-    if (x === WIDTH_IN_PIECES - 1) {
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
+    if (x === puzzle.width_in_pieces - 1) {
+      points.push([puzzle.piece_width + puzzle.width_overlap, puzzle.height_overlap + puzzle.piece_height])
     } else {
       const xs = this.horizontal(x + 1, y)
       const dy = 1 / (xs.length + 1)
       for (let i = 0; i < xs.length; i++) {
         points.push([
-          PIECE_WIDTH + WIDTH_OVERLAP * (1 + xs[i]),
-          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) * dy),
+          puzzle.piece_width + puzzle.width_overlap * (1 + xs[i]),
+          puzzle.height_overlap + puzzle.piece_height * ((i + 1) * dy),
         ])
       }
-      points.push([PIECE_WIDTH + WIDTH_OVERLAP, HEIGHT_OVERLAP + PIECE_HEIGHT])
+      points.push([puzzle.piece_width + puzzle.width_overlap, puzzle.height_overlap + puzzle.piece_height])
     }
     // BOTTOM
-    if (y === HEIGHT_IN_PIECES - 1) {
-      points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
+    if (y === puzzle.height_in_pieces - 1) {
+      points.push([puzzle.width_overlap, puzzle.piece_height + puzzle.height_overlap])
     } else {
       const ys = this.vertical(x, y + 1)
       const dx = 1 / (ys.length + 1)
       for (let i = ys.length - 1; i >= 0; i--) {
         points.push([
-          WIDTH_OVERLAP + PIECE_WIDTH * (dx * (i + 1)),
-          PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + ys[i]),
+          puzzle.width_overlap + puzzle.piece_width * (dx * (i + 1)),
+          puzzle.piece_height + puzzle.height_overlap * (1 + ys[i]),
         ])
       }
-      points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
+      points.push([puzzle.width_overlap, puzzle.piece_height + puzzle.height_overlap])
     }
     // LEFT
     if (x === 0) {
-      points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
+      points.push([puzzle.width_overlap, puzzle.height_overlap])
     } else {
       const xs = this.horizontal(x, y)
       const dy = 1 / (xs.length + 1)
       for (let i = xs.length - 1; i >= 0; i--) {
         points.push([
-          WIDTH_OVERLAP * (1 + xs[i]),
-          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) * dy),
+          puzzle.width_overlap * (1 + xs[i]),
+          puzzle.height_overlap + puzzle.piece_height * ((i + 1) * dy),
         ])
       }
-      points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
+      points.push([puzzle.width_overlap, puzzle.height_overlap])
     }
     return points
 
@@ -130,31 +115,31 @@ class Scene extends Phaser.Scene {
     const atlas = this.textures
       .addDynamicTexture(
         "pieces",
-        WIDTH_IN_PIECES * TOTAL_PIECE_WIDTH,
-        HEIGHT_IN_PIECES * TOTAL_PIECE_HEIGHT,
+        puzzle.width_in_pieces * puzzle.total_piece_width,
+        puzzle.height_in_pieces * puzzle.total_piece_height,
       )
     atlas.fill(0x000000, 0)
     const jigsaw = this.make
       .image({key: "jigsaw"})
       .setOrigin(0, 0)
-    for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
-      for (let x = 0; x < WIDTH_IN_PIECES; x++) {
+    for (let y = 0; y < puzzle.height_in_pieces; y++) {
+      for (let x = 0; x < puzzle.width_in_pieces; x++) {
         const m = this.makePieceShape(x, y)
-        m.setPosition(TOTAL_PIECE_WIDTH * x, TOTAL_PIECE_HEIGHT * y)
+        m.setPosition(puzzle.total_piece_width * x, puzzle.total_piece_height * y)
         jigsaw.setMask(m.createGeometryMask())
         atlas.draw(
           jigsaw,
-          WIDTH_OVERLAP + 2 * WIDTH_OVERLAP * x,
-          HEIGHT_OVERLAP + 2 * HEIGHT_OVERLAP * y,
+          puzzle.width_overlap + 2 * puzzle.width_overlap * x,
+          puzzle.height_overlap + 2 * puzzle.height_overlap * y,
         )
         jigsaw.clearMask(true)
         atlas.add(
-          y * WIDTH_IN_PIECES + x,
+          y * puzzle.width_in_pieces + x,
           0,
-          TOTAL_PIECE_WIDTH * x,
-          TOTAL_PIECE_HEIGHT * y,
-          TOTAL_PIECE_WIDTH,
-          TOTAL_PIECE_HEIGHT,
+          puzzle.total_piece_width * x,
+          puzzle.total_piece_height * y,
+          puzzle.total_piece_width,
+          puzzle.total_piece_height,
         )
       }
     }
@@ -210,20 +195,20 @@ class Scene extends Phaser.Scene {
       }
     })
     const toRandomise = []
-    const grid = new Array(WIDTH_IN_PIECES)
+    const grid = new Array(puzzle.width_in_pieces)
       .fill([])
-      .map(() => new Array(HEIGHT_IN_PIECES))
+      .map(() => new Array(puzzle.height_in_pieces))
 
     function addContainer(c) {
       selected.add(c)
       foreground.add(c)
     }
 
-    for (let y = 0; y < HEIGHT_IN_PIECES; y++) {
-      for (let x = 0; x < WIDTH_IN_PIECES; x++) {
+    for (let y = 0; y < puzzle.height_in_pieces; y++) {
+      for (let x = 0; x < puzzle.width_in_pieces; x++) {
         const frameNumber = this.pieceIndex(x, y)
-        const xOffset = x * PIECE_WIDTH - WIDTH_OVERLAP
-        const yOffset = y * PIECE_HEIGHT - HEIGHT_OVERLAP
+        const xOffset = x * puzzle.piece_width - puzzle.width_overlap
+        const yOffset = y * puzzle.piece_height - puzzle.height_overlap
         const piece =
           this.make.image({
               x: xOffset,
@@ -233,12 +218,12 @@ class Scene extends Phaser.Scene {
             }, false,
           )
         const container = this.add.container(
-          Phaser.Math.Between(-xOffset, WIDTH - xOffset - PIECE_WIDTH),
-          Phaser.Math.Between(-yOffset, HEIGHT - yOffset - PIECE_HEIGHT),
+          Phaser.Math.Between(-xOffset, puzzle.width - xOffset - puzzle.piece_width),
+          Phaser.Math.Between(-yOffset, puzzle.height - yOffset - puzzle.piece_height),
           piece,
         )
         grid[x][y] = container
-        piece.setSize(PIECE_WIDTH, PIECE_HEIGHT)
+        piece.setSize(puzzle.piece_width, puzzle.piece_height)
         piece.setData("x", x)
         piece.setData("y", y)
         piece.setData("container", container)
@@ -249,8 +234,8 @@ class Scene extends Phaser.Scene {
         const hitArea = new Phaser.Geom.Polygon(points)
         Phaser.Geom.Polygon.Translate(
           hitArea,
-          x * PIECE_WIDTH - WIDTH_OVERLAP,
-          y * PIECE_HEIGHT - HEIGHT_OVERLAP,
+          x * puzzle.piece_width - puzzle.width_overlap,
+          y * puzzle.piece_height - puzzle.height_overlap,
         )
         container.setData("hitAreas", [hitArea])
         container.setInteractive({
@@ -289,14 +274,14 @@ class Scene extends Phaser.Scene {
               const gridX = p.getData("x")
               const gridY = p.getData("y")
               const candidates = new Set()
-              if (gridX < WIDTH_IN_PIECES - 1) candidates.add(grid[gridX + 1][gridY])
+              if (gridX < puzzle.width_in_pieces - 1) candidates.add(grid[gridX + 1][gridY])
               if (gridX > 0) candidates.add(grid[gridX - 1][gridY])
-              if (gridY < HEIGHT_IN_PIECES - 1) candidates.add(grid[gridX][gridY + 1])
+              if (gridY < puzzle.height_in_pieces - 1) candidates.add(grid[gridX][gridY + 1])
               if (gridY > 0) candidates.add(grid[gridX][gridY - 1])
               Array.from(candidates)
                 .filter(other => other !== c)
-                .filter(other => Math.abs(c.x - other.x) < WIDTH_OVERLAP)
-                .filter(other => Math.abs(c.y - other.y) < HEIGHT_OVERLAP)
+                .filter(other => Math.abs(c.x - other.x) < puzzle.width_overlap)
+                .filter(other => Math.abs(c.y - other.y) < puzzle.height_overlap)
                 .forEach(other => {
                   other.each(op => {
                     grid[op.getData("x")][op.getData("y")] = c
@@ -312,7 +297,7 @@ class Scene extends Phaser.Scene {
           })
           if (didConnect) {
             this.sound.play("connect")
-            if (selected.children.getArray()[0].getAll().length === PIECES) {
+            if (selected.children.getArray()[0].getAll().length === puzzle.number_of_pieces) {
               foreground.postFX.addShine()
               table.postFX.addShine()
               this.cameras.main.fadeIn()
@@ -348,7 +333,7 @@ new Phaser.Game({
   scale: {
     mode: Phaser.Scale.ENVELOP,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: WIDTH,
-    height: HEIGHT,
+    width: puzzle.width,
+    height: puzzle.height,
   },
 })
