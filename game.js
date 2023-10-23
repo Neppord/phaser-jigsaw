@@ -3,8 +3,8 @@ import {Puzzle} from "./puzzle.js"
 const puzzle = new Puzzle(
   1920,
   1080,
-  16 / 4,
-  9 / 3,
+  16,
+  9,
 )
 
 console.dir(puzzle)
