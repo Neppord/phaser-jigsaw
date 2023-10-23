@@ -1,7 +1,15 @@
-const WIDTH = 1920
-const HEIGHT = 1080
-const WIDTH_IN_PIECES = 16 / 4
-const HEIGHT_IN_PIECES = 9 / 3
+import {Puzzle} from "./puzzle.js"
+
+const puzzle = new Puzzle(
+  1920,
+  1080,
+  16 / 4,
+  9 / 3,
+)
+const WIDTH = puzzle.width
+const HEIGHT = puzzle.height
+const WIDTH_IN_PIECES = puzzle.width_in_pieces
+const HEIGHT_IN_PIECES = puzzle.height_in_pieces
 const PIECES = WIDTH_IN_PIECES * HEIGHT_IN_PIECES
 console.log("Pieces: ", PIECES)
 console.log("Width: ", WIDTH_IN_PIECES)
@@ -30,9 +38,9 @@ class Scene extends Phaser.Scene {
     const index = this.pieceIndex(x, y)
     const rnd = new Phaser.Math.RandomDataGenerator([index])
     if (rnd.frac() > 0.5) {
-      return [rnd.frac(), - rnd.frac(), - rnd.frac(), rnd.frac()]
+      return [rnd.frac(), -rnd.frac(), -rnd.frac(), rnd.frac()]
     } else {
-      return [- rnd.frac(), rnd.frac(),  rnd.frac(), -rnd.frac()]
+      return [-rnd.frac(), rnd.frac(), rnd.frac(), -rnd.frac()]
     }
   }
 
@@ -40,9 +48,9 @@ class Scene extends Phaser.Scene {
     const index = this.pieceIndex(x, y) << 8
     const rnd = new Phaser.Math.RandomDataGenerator([index])
     if (rnd.frac() > 0.5) {
-      return [rnd.frac(), - rnd.frac(), - rnd.frac(), rnd.frac()]
+      return [rnd.frac(), -rnd.frac(), -rnd.frac(), rnd.frac()]
     } else {
-      return [- rnd.frac(), rnd.frac(),  rnd.frac(), -rnd.frac()]
+      return [-rnd.frac(), rnd.frac(), rnd.frac(), -rnd.frac()]
     }
   }
 
@@ -58,7 +66,7 @@ class Scene extends Phaser.Scene {
       for (let i = 0; i < ys.length; i++) {
         points.push([
           WIDTH_OVERLAP + PIECE_WIDTH * (dx * (i + 1)),
-          HEIGHT_OVERLAP * (1 + ys[i])]
+          HEIGHT_OVERLAP * (1 + ys[i])],
         )
       }
       points.push([WIDTH_OVERLAP + PIECE_WIDTH, HEIGHT_OVERLAP])
@@ -86,7 +94,7 @@ class Scene extends Phaser.Scene {
       for (let i = ys.length - 1; i >= 0; i--) {
         points.push([
           WIDTH_OVERLAP + PIECE_WIDTH * (dx * (i + 1)),
-          PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + ys[i])
+          PIECE_HEIGHT + HEIGHT_OVERLAP * (1 + ys[i]),
         ])
       }
       points.push([WIDTH_OVERLAP, PIECE_HEIGHT + HEIGHT_OVERLAP])
@@ -100,7 +108,7 @@ class Scene extends Phaser.Scene {
       for (let i = xs.length - 1; i >= 0; i--) {
         points.push([
           WIDTH_OVERLAP * (1 + xs[i]),
-          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) *  dy),
+          HEIGHT_OVERLAP + PIECE_HEIGHT * ((i + 1) * dy),
         ])
       }
       points.push([WIDTH_OVERLAP, HEIGHT_OVERLAP])
