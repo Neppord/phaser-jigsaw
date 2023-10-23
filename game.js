@@ -48,10 +48,9 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(1), dim.y(0)])
     } else {
       const ys = this.vertical(x, y)
-      const dx = 1 / (ys.length + 1)
       for (let i = 0; i < ys.length; i++) {
         points.push([
-          dim.x(dx * (i + 1)),
+          dim.x(1 / (ys.length + 1) * (i + 1)),
           dim.height_overlap * (1 + ys[i])],
         )
       }
@@ -62,11 +61,10 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(1), dim.y(1)])
     } else {
       const xs = this.horizontal(x + 1, y)
-      const dy = 1 / (xs.length + 1)
       for (let i = 0; i < xs.length; i++) {
         points.push([
           dim.width + dim.width_overlap * (1 + xs[i]),
-          dim.y((i + 1) * dy),
+          dim.y((i + 1) * (1 / (xs.length + 1))),
         ])
       }
       points.push([dim.x(1), dim.y(1)])
@@ -76,10 +74,9 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(0), dim.y(1)])
     } else {
       const ys = this.vertical(x, y + 1)
-      const dx = 1 / (ys.length + 1)
       for (let i = ys.length - 1; i >= 0; i--) {
         points.push([
-          dim.x(dx * (i + 1)),
+          dim.x(1 / (ys.length + 1) * (i + 1)),
           dim.height + dim.height_overlap * (1 + ys[i]),
         ])
       }
@@ -90,11 +87,10 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(0), dim.y(0)])
     } else {
       const xs = this.horizontal(x, y)
-      const dy = 1 / (xs.length + 1)
       for (let i = xs.length - 1; i >= 0; i--) {
         points.push([
           dim.width_overlap * (1 + xs[i]),
-          dim.y((i + 1) * dy),
+          dim.y((i + 1) * (1 / (xs.length + 1))),
         ])
       }
       points.push([dim.x(0), dim.y(0)])
