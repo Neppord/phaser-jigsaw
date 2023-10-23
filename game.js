@@ -43,7 +43,7 @@ class Scene extends Phaser.Scene {
     const points = []
     const dim = puzzle.piece
     const delta = 0.05
-    const strength = 2.5
+    const strength = 2
     points.push([dim.x(0), dim.y(0)])
     // TOP
     const interpolate = Phaser.Math.Interpolation.Bezier
