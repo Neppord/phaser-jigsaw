@@ -1,17 +1,11 @@
 export class Puzzle {
-
   width
   height
   width_in_pieces
   height_in_pieces
-
   number_of_pieces
-  piece_width
-  piece_height
-  total_piece_width
-  total_piece_height
-  width_overlap
-  height_overlap
+
+  piece
 
   constructor(width, height, width_in_pieces, height_in_pieces) {
     this.width = width
@@ -21,13 +15,29 @@ export class Puzzle {
     
     this.number_of_pieces = width_in_pieces * height_in_pieces
     
-    this.piece_width =  width / width_in_pieces
-    this.piece_height =  height / height_in_pieces
-    const OVERLAP = 5
-    this.width_overlap = this.piece_width / OVERLAP
-    this.height_overlap = this.piece_height / OVERLAP
-    this.total_piece_width = this.piece_width + 2 * this.width_overlap
-    this.total_piece_height = this.piece_height + 2 * this.height_overlap
-    
+    const piece_width =  width / width_in_pieces
+    const piece_height =  height / height_in_pieces
+    this.piece = new Piece(
+      piece_width,
+      piece_height,
+      piece_width / 5,
+      piece_height / 5
+    )
+  }
+}
+export class Piece {
+  width
+  height
+  width_overlap
+  height_overlap
+  total_width
+  total_height
+  constructor(width, height, width_overlap, height_overlap) {
+    this.width = width
+    this.height = height
+    this.width_overlap = width_overlap
+    this.height_overlap = height_overlap
+    this.total_width = width + 2 * width_overlap
+    this.total_height = height + 2 * height_overlap
   }
 }
