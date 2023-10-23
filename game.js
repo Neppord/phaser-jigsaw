@@ -42,17 +42,18 @@ class Scene extends Phaser.Scene {
   piecePoints(x, y) {
     const points = []
     const dim = puzzle.piece
+    const delta = 0.20
     points.push([dim.x(0), dim.y(0)])
     // TOP
     if (y === 0) {
       points.push([dim.x(1), dim.y(0)])
     } else {
       const ys = this.vertical(x, y)
-      for (let i = 0; i < ys.length; i++) {
-        points.push([
-          dim.x((i + 1) / (ys.length + 1)),
-          dim.y(0) + ys[i] * dim.height_overlap
-        ])
+      const with_edges = [0, ...ys, 0]
+      for (let i = delta; i < 1; i += delta) {
+        const mix = Phaser.Math.Interpolation.Linear(with_edges, i)
+        const offset = mix * dim.height_overlap
+        points.push([dim.x(i), dim.y(0) + offset])
       }
       points.push([dim.x(1), dim.y(0)])
     }
@@ -61,11 +62,11 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(1), dim.y(1)])
     } else {
       const xs = this.horizontal(x + 1, y)
-      for (let i = 0; i < xs.length; i++) {
-        points.push([
-          dim.x(1) + xs[i] * dim.width_overlap,
-          dim.y((i + 1) / (xs.length + 1)),
-        ])
+      const with_edges = [0, ...xs, 0]
+      for (let i = delta; i < 1; i += delta) {
+        const mix = Phaser.Math.Interpolation.Linear(with_edges, i)
+        const offset = mix * dim.width_overlap
+        points.push([dim.x(1) + offset, dim.y(i)])
       }
       points.push([dim.x(1), dim.y(1)])
     }
@@ -74,11 +75,11 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(0), dim.y(1)])
     } else {
       const ys = this.vertical(x, y + 1)
-      for (let i = ys.length - 1; i >= 0; i--) {
-        points.push([
-          dim.x((i + 1) / (ys.length + 1)),
-          dim.y(1) + ys[i] * dim.height_overlap,
-        ])
+      const with_edges = [0, ...ys, 0]
+      for (let i = 1 - delta; i >= 0; i -= delta) {
+        const mix = Phaser.Math.Interpolation.Linear(with_edges, i)
+        const offset = mix * dim.height_overlap
+        points.push([dim.x(i), dim.y(1) + offset])
       }
       points.push([dim.x(0), dim.y(1)])
     }
@@ -87,10 +88,13 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(0), dim.y(0)])
     } else {
       const xs = this.horizontal(x, y)
-      for (let i = xs.length - 1; i >= 0; i--) {
+      const with_edges = [0, ...xs, 0]
+      for (let i = 1 - delta; i >= 0; i -= delta) {
+        const mix = Phaser.Math.Interpolation.Linear(with_edges, i)
+        const offset = mix * dim.width_overlap
         points.push([
-          dim.x(0) + xs[i] * dim.width_overlap,
-          dim.y((i + 1) / (xs.length + 1)),
+          dim.x(0) + offset,
+          dim.y(i),
         ])
       }
       points.push([dim.x(0), dim.y(0)])
