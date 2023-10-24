@@ -24,6 +24,12 @@ export class Puzzle {
       piece_height / 3
     )
   }
+
+
+  pieceIndex(x, y) {
+    return y * this.width_in_pieces + x
+  }
+  
 }
 export class Piece {
   width

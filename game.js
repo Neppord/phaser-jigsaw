@@ -14,19 +14,15 @@ class Scene extends Phaser.Scene {
     this.load.image("jigsaw", "ship-1366926_1920.jpg")
     this.load.audio("connect", "connect.wav")
   }
-
-  pieceIndex(x, y) {
-    return y * puzzle.width_in_pieces + x
-  }
-
+  
   vertical(x, y) {
-    const index = this.pieceIndex(x, y)
+    const index = puzzle.pieceIndex(x, y)
     const rnd = new Phaser.Math.RandomDataGenerator([index])
     return this.edge(rnd)
   }
 
   horizontal(x, y) {
-    const index = this.pieceIndex(x, y) << 8
+    const index = puzzle.pieceIndex(x, y) << 8
     const rnd = new Phaser.Math.RandomDataGenerator([index])
     return this.edge(rnd)
   }
@@ -205,7 +201,7 @@ class Scene extends Phaser.Scene {
 
     for (let y = 0; y < puzzle.height_in_pieces; y++) {
       for (let x = 0; x < puzzle.width_in_pieces; x++) {
-        const frameNumber = this.pieceIndex(x, y)
+        const frameNumber = puzzle.pieceIndex(x, y)
         const xOffset = x * dim.width - dim.width_overlap
         const yOffset = y * dim.height - dim.height_overlap
         const piece =
