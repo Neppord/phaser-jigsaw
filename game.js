@@ -1,28 +1,31 @@
 import {Puzzle} from "./puzzle.js"
 
-const puzzle = new Puzzle(
-  1920,
-  1080,
-  16,
-  9,
-)
-
-console.dir(puzzle)
 
 class Scene extends Phaser.Scene {
+  puzzle
+  init(data) {
+    this.puzzle = new Puzzle(
+      1920,
+      1080,
+      16,
+      9,
+    )
+    console.dir(this.puzzle)
+    this.piece = this.puzzle.piece
+  }
   preload() {
     this.load.image("jigsaw", "ship-1366926_1920.jpg")
     this.load.audio("connect", "connect.wav")
   }
   
   vertical(x, y) {
-    const index = puzzle.pieceIndex(x, y)
+    const index = this.puzzle.pieceIndex(x, y)
     const rnd = new Phaser.Math.RandomDataGenerator([index])
     return this.edge(rnd)
   }
 
   horizontal(x, y) {
-    const index = puzzle.pieceIndex(x, y) << 8
+    const index = this.puzzle.pieceIndex(x, y) << 8
     const rnd = new Phaser.Math.RandomDataGenerator([index])
     return this.edge(rnd)
   }
@@ -37,7 +40,7 @@ class Scene extends Phaser.Scene {
 
   piecePoints(x, y) {
     const points = []
-    const dim = puzzle.piece
+    const dim =  this.piece
     const delta = 0.05
     points.push([dim.x(0), dim.y(0)])
     // TOP
@@ -54,7 +57,7 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(1), dim.y(0)])
     }
     // RIGHT
-    if (x === puzzle.width_in_pieces - 1) {
+    if (x === this.puzzle.width_in_pieces - 1) {
       points.push([dim.x(1), dim.y(1)])
     } else {
       const xs = this.horizontal(x + 1, y)
@@ -66,7 +69,7 @@ class Scene extends Phaser.Scene {
       points.push([dim.x(1), dim.y(1)])
     }
     // BOTTOM
-    if (y === puzzle.height_in_pieces - 1) {
+    if (y === this.puzzle.height_in_pieces - 1) {
       points.push([dim.x(0), dim.y(1)])
     } else {
       const ys = this.vertical(x, y + 1)
@@ -106,19 +109,19 @@ class Scene extends Phaser.Scene {
   }
 
   create() {
-    const dim = puzzle.piece
+    const dim =  this.piece
     const atlas = this.textures
       .addDynamicTexture(
         "pieces",
-        puzzle.width_in_pieces * dim.total_width,
-        puzzle.height_in_pieces * dim.total_height,
+        this.puzzle.width_in_pieces * dim.total_width,
+        this.puzzle.height_in_pieces * dim.total_height,
       )
     atlas.fill(0x000000, 0)
     const jigsaw = this.make
       .image({key: "jigsaw"})
       .setOrigin(0, 0)
-    for (let y = 0; y < puzzle.height_in_pieces; y++) {
-      for (let x = 0; x < puzzle.width_in_pieces; x++) {
+    for (let y = 0; y < this.puzzle.height_in_pieces; y++) {
+      for (let x = 0; x < this.puzzle.width_in_pieces; x++) {
         const m = this.makePieceShape(x, y)
         m.setPosition(dim.total_width * x, dim.total_height * y)
         jigsaw.setMask(m.createGeometryMask())
@@ -129,7 +132,7 @@ class Scene extends Phaser.Scene {
         )
         jigsaw.clearMask(true)
         atlas.add(
-          y * puzzle.width_in_pieces + x,
+          y * this.puzzle.width_in_pieces + x,
           0,
           dim.total_width * x,
           dim.total_height * y,
@@ -190,18 +193,18 @@ class Scene extends Phaser.Scene {
       }
     })
     const toRandomise = []
-    const grid = new Array(puzzle.width_in_pieces)
+    const grid = new Array(this.puzzle.width_in_pieces)
       .fill([])
-      .map(() => new Array(puzzle.height_in_pieces))
+      .map(() => new Array(this.puzzle.height_in_pieces))
 
     function addContainer(c) {
       selected.add(c)
       foreground.add(c)
     }
 
-    for (let y = 0; y < puzzle.height_in_pieces; y++) {
-      for (let x = 0; x < puzzle.width_in_pieces; x++) {
-        const frameNumber = puzzle.pieceIndex(x, y)
+    for (let y = 0; y < this.puzzle.height_in_pieces; y++) {
+      for (let x = 0; x < this.puzzle.width_in_pieces; x++) {
+        const frameNumber = this.puzzle.pieceIndex(x, y)
         const xOffset = x * dim.width - dim.width_overlap
         const yOffset = y * dim.height - dim.height_overlap
         const piece =
@@ -213,8 +216,8 @@ class Scene extends Phaser.Scene {
             }, false,
           )
         const container = this.add.container(
-          Phaser.Math.Between(-xOffset, puzzle.width - xOffset - dim.width),
-          Phaser.Math.Between(-yOffset, puzzle.height - yOffset - dim.height),
+          Phaser.Math.Between(-xOffset, this.puzzle.width - xOffset - dim.width),
+          Phaser.Math.Between(-yOffset, this.puzzle.height - yOffset - dim.height),
           piece,
         )
         grid[x][y] = container
@@ -269,9 +272,9 @@ class Scene extends Phaser.Scene {
               const gridX = p.getData("x")
               const gridY = p.getData("y")
               const candidates = new Set()
-              if (gridX < puzzle.width_in_pieces - 1) candidates.add(grid[gridX + 1][gridY])
+              if (gridX < this.puzzle.width_in_pieces - 1) candidates.add(grid[gridX + 1][gridY])
               if (gridX > 0) candidates.add(grid[gridX - 1][gridY])
-              if (gridY < puzzle.height_in_pieces - 1) candidates.add(grid[gridX][gridY + 1])
+              if (gridY < this.puzzle.height_in_pieces - 1) candidates.add(grid[gridX][gridY + 1])
               if (gridY > 0) candidates.add(grid[gridX][gridY - 1])
               Array.from(candidates)
                 .filter(other => other !== c)
@@ -292,7 +295,7 @@ class Scene extends Phaser.Scene {
           })
           if (didConnect) {
             this.sound.play("connect")
-            if (selected.children.getArray()[0].getAll().length === puzzle.number_of_pieces) {
+            if (selected.children.getArray()[0].getAll().length === this.puzzle.number_of_pieces) {
               foreground.postFX.addShine()
               table.postFX.addShine()
               this.cameras.main.fadeIn()
@@ -328,7 +331,7 @@ new Phaser.Game({
   scale: {
     mode: Phaser.Scale.ENVELOP,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: puzzle.width,
-    height: puzzle.height,
+    width: 1920,
+    height: 1080,
   },
 })
