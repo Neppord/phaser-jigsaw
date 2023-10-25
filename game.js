@@ -120,12 +120,13 @@ class Scene extends Phaser.Scene {
     const jigsaw = this.make
       .image({key: "jigsaw"})
       .setOrigin(0, 0)
+    atlas.beginDraw()
     for (let y = 0; y < this.puzzle.height_in_pieces; y++) {
       for (let x = 0; x < this.puzzle.width_in_pieces; x++) {
         const m = this.makePieceShape(x, y)
         m.setPosition(dim.total_width * x, dim.total_height * y)
         jigsaw.setMask(m.createGeometryMask())
-        atlas.draw(
+        atlas.batchDraw(
           jigsaw,
           dim.width_overlap + 2 * dim.width_overlap * x,
           dim.height_overlap + 2 * dim.height_overlap * y,
@@ -141,6 +142,7 @@ class Scene extends Phaser.Scene {
         )
       }
     }
+    atlas.endDraw()
     jigsaw.destroy(true)
     const selected = this.add.group()
     const table = this.add.layer()
