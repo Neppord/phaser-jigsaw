@@ -176,7 +176,7 @@ class Scene extends Phaser.Scene {
     let lastClick = -1
     this.input.on("pointerup", (pointer) => {
       if (pointer.upTime - lastClick < 500) {
-        this.scale.toggleFullscreen()
+        this.scale.startFullscreen()
       }
       lastClick = pointer.upTime
     })
