@@ -318,6 +318,8 @@ class Scene extends Phaser.Scene {
       duration: 500,
       delay: this.tweens.stagger([10, 1000]),
     })
+    const hud = this.add.text(0, 0, `Pieces: ${this.puzzle.number_of_pieces}`)
+    hud.setScrollFactor(0)
   }
 }
 
