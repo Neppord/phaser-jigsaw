@@ -7,8 +7,8 @@ class Scene extends Phaser.Scene {
     this.puzzle = new Puzzle(
       1920,
       1080,
-      16,
-      9,
+      16*2,
+      9*2,
     )
     console.dir(this.puzzle)
     this.piece = this.puzzle.piece
