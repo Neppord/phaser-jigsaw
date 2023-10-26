@@ -5,10 +5,14 @@ const EVENT = {
   select: "select",
   move: "move",
   connect: "connect",
+  game_id: "game_id",
+  player_id: "player_id",
 }
 
 class Scene extends Phaser.Scene {
   puzzle
+  game_id
+  player_id
 
   init(data) {
     this.puzzle = new Puzzle(
@@ -239,6 +243,15 @@ class Scene extends Phaser.Scene {
     })
     const hud = this.add.text(0, 0, `Pieces: ${this.puzzle.number_of_pieces}`)
     hud.setScrollFactor(0)
+    this.game.events.on(EVENT.player_id, (id) => {
+      this.player_id = id
+      hud.setText(`Game: ${this.game_id}\nPlayer: ${this.player_id}\nPieces: ${this.puzzle.number_of_pieces}\n`)
+    })
+    this.game.events.on(EVENT.game_id, (id) => {
+      this.game_id = id
+      location.hash = id
+      hud.setText(`Game: ${this.game_id}\nPlayer: ${this.player_id}\nPieces: ${this.puzzle.number_of_pieces}\n`)
+    })
   }
 
   create_atlas() {
@@ -279,7 +292,7 @@ class Scene extends Phaser.Scene {
   }
 }
 
-new Phaser.Game({
+const game = new Phaser.Game({
   scene: Scene,
   physics: {
     default: 'arcade',
@@ -295,3 +308,38 @@ new Phaser.Game({
     height: 1080,
   },
 })
+
+const peer = new Peer(undefined, {
+  debug: 1
+})
+const handle_connection = client => {
+    console.log("receiving connection")
+    client.on("data", data => {
+      console.log(data)
+    })
+}
+if (location.hash){
+  const host_id = location.hash.slice(1)
+  peer.on("open", id => {
+    game.events.emit(EVENT.player_id, id)
+    const host = peer.connect(host_id)
+    peer.once("error", e => {
+      if (e.type === "peer-unavailable") {
+        game.events.emit(EVENT.game_id, id)
+        peer.on("connection", handle_connection)
+      }
+    })
+    host.on("open", () => {
+      game.events.emit(EVENT.game_id, host_id)
+      host.send("hi")
+      console.log(`sending hi to ${host_id} from ${id}`)
+    })
+  })
+} else {
+  peer.on("open", id => {
+    game.events.emit(EVENT.game_id, id)
+    game.events.emit(EVENT.player_id, id)
+  })
+  peer.on("connection", handle_connection)
+}
+//peer.on("error", e => console.log(e))
