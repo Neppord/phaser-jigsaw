@@ -58,7 +58,7 @@ class Scene extends Phaser.Scene {
       o.removeAll()
       const hitAreas = c.getData("hitAreas")
       o.getData("hitAreas").forEach(ha => hitAreas.push(ha))
-      
+
       o.destroy(true)
       this.sound.play("connect")
       this.cameras.main.shake(100, 0.005)
@@ -207,19 +207,19 @@ class Scene extends Phaser.Scene {
               if (gridX > 0) candidates.add(grid[gridX - 1][gridY])
               if (gridY < this.puzzle.height_in_pieces - 1) candidates.add(grid[gridX][gridY + 1])
               if (gridY > 0) candidates.add(grid[gridX][gridY - 1])
-              Array.from(candidates)
-                .filter(other => other !== c)
-                .filter(other => Math.abs(c.x - other.x) < this.piece.width_overlap)
-                .filter(other => Math.abs(c.y - other.y) < this.piece.height_overlap)
-                .forEach(o => {
-                  this.events.emit(
-                    EVENT.connect,
-                    c.getData("x"),
-                    c.getData("y"),
-                    o.getData("x"),
-                    o.getData("y"),
-                  )
-                })
+              Array.from(candidates).filter(o =>
+                o !== c &&
+                Math.abs(c.x - o.x) < this.piece.width_overlap &&
+                Math.abs(c.y - o.y) < this.piece.height_overlap,
+              ).forEach(o => {
+                this.events.emit(
+                  EVENT.connect,
+                  c.getData("x"),
+                  c.getData("y"),
+                  o.getData("x"),
+                  o.getData("y"),
+                )
+              })
             })
           })
         })
