@@ -198,7 +198,6 @@ class Scene extends Phaser.Scene {
             c.x,
             c.y,
           ))
-          let didConnect = false
           foreground.getChildren().forEach(c => {
             c.each(p => {
               const gridX = p.getData("x")
