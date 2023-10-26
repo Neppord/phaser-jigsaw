@@ -86,10 +86,6 @@ class Scene extends Phaser.Scene {
       .fill([])
       .map(() => new Array(this.puzzle.height_in_pieces))
 
-    function addContainer(c) {
-      foreground.add(c)
-    }
-
     for (let y = 0; y < this.puzzle.height_in_pieces; y++) {
       for (let x = 0; x < this.puzzle.width_in_pieces; x++) {
         const frameNumber = this.puzzle.pieceIndex(x, y)
@@ -137,10 +133,10 @@ class Scene extends Phaser.Scene {
         container.on('dragstart', function () {
           if (!foreground.getChildren().includes(this)) {
             if (shift.isDown) {
-              addContainer(this)
+              foreground.add(this)
             } else {
               table.add(foreground.getChildren().map(o => o))
-              addContainer(this)
+              foreground.add(this)
             }
           }
         })
