@@ -1,6 +1,8 @@
 import {Puzzle} from "./puzzle.js"
 
-
+const EVENT = {
+  clear_selection: "clear_selection"
+}
 class Scene extends Phaser.Scene {
   puzzle
 
@@ -35,6 +37,9 @@ class Scene extends Phaser.Scene {
 
     const table = this.add.layer()
     const foreground = this.add.layer()
+    this.events.on(EVENT.clear_selection, () => {
+      table.add(foreground.getChildren().map( c => c))
+    })
     foreground.bringToTop()
     foreground.postFX.addGlow(0xFFFF00)
 
@@ -52,10 +57,7 @@ class Scene extends Phaser.Scene {
         }
         this.input.on(Phaser.Input.Events.POINTER_MOVE, move)
         this.input.once("pointerup", () => {
-          if (!moved) {
-            foreground.getChildren().forEach(c => c.each(p => p.setTint()))
-            table.add(foreground.getChildren().map(o => o))
-          }
+          if (!moved) this.events.emit(EVENT.clear_selection)
           this.input.off(Phaser.Input.Events.POINTER_MOVE, move)
         })
       }
@@ -135,7 +137,7 @@ class Scene extends Phaser.Scene {
             if (shift.isDown) {
               foreground.add(container)
             } else {
-              table.add(foreground.getChildren().map(o => o))
+              this.events.emit(EVENT.clear_selection)
               foreground.add(container)
             }
           }
