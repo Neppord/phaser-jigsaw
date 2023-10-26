@@ -3,6 +3,7 @@ import {Puzzle} from "./puzzle.js"
 
 class Scene extends Phaser.Scene {
   puzzle
+
   init(data) {
     this.puzzle = new Puzzle(
       1920,
@@ -13,6 +14,7 @@ class Scene extends Phaser.Scene {
     console.dir(this.puzzle)
     this.piece = this.puzzle.piece
   }
+
   preload() {
     this.load.image("jigsaw", "ship-1366926_1920.jpg")
     this.load.audio("connect", "connect.wav")
@@ -28,10 +30,9 @@ class Scene extends Phaser.Scene {
   }
 
   create() {
-    
+
     this.create_atlas()
-    
-    const selected = this.add.group()
+
     const table = this.add.layer()
     const foreground = this.add.layer()
     foreground.bringToTop()
@@ -52,8 +53,7 @@ class Scene extends Phaser.Scene {
         this.input.on(Phaser.Input.Events.POINTER_MOVE, move)
         this.input.once("pointerup", () => {
           if (!moved) {
-            selected.children.each(container => container.each(p => p.setTint()))
-            selected.clear()
+            foreground.getChildren().forEach(c => c.each(p => p.setTint()))
             table.add(foreground.getChildren().map(o => o))
           }
           this.input.off(Phaser.Input.Events.POINTER_MOVE, move)
@@ -87,7 +87,6 @@ class Scene extends Phaser.Scene {
       .map(() => new Array(this.puzzle.height_in_pieces))
 
     function addContainer(c) {
-      selected.add(c)
       foreground.add(c)
     }
 
@@ -136,19 +135,19 @@ class Scene extends Phaser.Scene {
           Phaser.Input.Keyboard.KeyCodes.SHIFT,
         )
         container.on('dragstart', function () {
-          if (!selected.contains(this)) {
+          if (!foreground.getChildren().includes(this)) {
             if (shift.isDown) {
               addContainer(this)
             } else {
-              selected.clear()
               table.add(foreground.getChildren().map(o => o))
               addContainer(this)
             }
           }
         })
         container.on('drag', function (pointer, dragX, dragY) {
-          if (selected.contains(this)) {
-            selected.incXY(
+          if (foreground.getChildren().includes(this)) {
+            Phaser.Actions.IncXY(
+              foreground.getChildren(),
               dragX - this.x,
               dragY - this.y,
             )
@@ -156,7 +155,7 @@ class Scene extends Phaser.Scene {
         })
         container.on('dragend', () => {
           let didConnect = false
-          selected.children.each(c => {
+          foreground.getChildren().forEach(c => {
             c.each(p => {
               const gridX = p.getData("x")
               const gridY = p.getData("y")
@@ -185,7 +184,7 @@ class Scene extends Phaser.Scene {
           if (didConnect) {
             this.sound.play("connect")
             this.cameras.main.shake(100, 0.005)
-            if (selected.children.getArray()[0].getAll().length === this.puzzle.number_of_pieces) {
+            if (foreground.getChildren()[0].getAll().length === this.puzzle.number_of_pieces) {
               foreground.postFX.addShine()
               table.postFX.addShine()
               this.cameras.main.fadeIn()
