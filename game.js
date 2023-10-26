@@ -1,7 +1,8 @@
 import {Puzzle} from "./puzzle.js"
 
 const EVENT = {
-  clear_selection: "clear_selection"
+  clear_selection: "clear_selection",
+  select: "select",
 }
 class Scene extends Phaser.Scene {
   puzzle
@@ -39,6 +40,9 @@ class Scene extends Phaser.Scene {
     const foreground = this.add.layer()
     this.events.on(EVENT.clear_selection, () => {
       table.add(foreground.getChildren().map( c => c))
+    })
+    this.events.on(EVENT.select, (x, y) => {
+      foreground.add(grid[x][y])
     })
     foreground.bringToTop()
     foreground.postFX.addGlow(0xFFFF00)
@@ -106,8 +110,11 @@ class Scene extends Phaser.Scene {
           Phaser.Math.Between(-yOffset, this.puzzle.height - yOffset - this.piece.height),
           piece,
         )
-        grid[x][y] = container
         piece.setSize(this.piece.width, this.piece.height)
+        
+        grid[x][y] = container
+        container.setData("x", x)
+        container.setData("y", y)
         piece.setData("x", x)
         piece.setData("y", y)
         piece.setData("container", container)
@@ -135,10 +142,18 @@ class Scene extends Phaser.Scene {
         container.on('dragstart', () => {
           if (!foreground.getChildren().includes(container)) {
             if (shift.isDown) {
-              foreground.add(container)
+              this.events.emit(
+                EVENT.select,
+                container.getData("x"),
+                container.getData("y")
+              )
             } else {
               this.events.emit(EVENT.clear_selection)
-              foreground.add(container)
+              this.events.emit(
+                EVENT.select,
+                container.getData("x"),
+                container.getData("y")
+              )
             }
           }
         })
