@@ -3,7 +3,9 @@ import {Puzzle} from "./puzzle.js"
 const EVENT = {
   clear_selection: "clear_selection",
   select: "select",
+  move: "move",
 }
+
 class Scene extends Phaser.Scene {
   puzzle
 
@@ -11,8 +13,8 @@ class Scene extends Phaser.Scene {
     this.puzzle = new Puzzle(
       1920,
       1080,
-      16*2,
-      9*2,
+      16 * 2,
+      9 * 2,
     )
     console.dir(this.puzzle)
     this.piece = this.puzzle.piece
@@ -39,7 +41,7 @@ class Scene extends Phaser.Scene {
     const table = this.add.layer()
     const foreground = this.add.layer()
     this.events.on(EVENT.clear_selection, () => {
-      table.add(foreground.getChildren().map( c => c))
+      table.add(foreground.getChildren().map(c => c))
     })
     this.events.on(EVENT.select, (x, y) => {
       foreground.add(grid[x][y])
@@ -111,7 +113,7 @@ class Scene extends Phaser.Scene {
           piece,
         )
         piece.setSize(this.piece.width, this.piece.height)
-        
+
         grid[x][y] = container
         container.setData("x", x)
         container.setData("y", y)
@@ -145,14 +147,14 @@ class Scene extends Phaser.Scene {
               this.events.emit(
                 EVENT.select,
                 container.getData("x"),
-                container.getData("y")
+                container.getData("y"),
               )
             } else {
               this.events.emit(EVENT.clear_selection)
               this.events.emit(
                 EVENT.select,
                 container.getData("x"),
-                container.getData("y")
+                container.getData("y"),
               )
             }
           }
@@ -167,6 +169,13 @@ class Scene extends Phaser.Scene {
           }
         })
         container.on('dragend', () => {
+          foreground.getChildren().forEach(c => this.events.emit(
+            EVENT.move,
+            c.getData("x"),
+            c.getData("y"),
+            c.x,
+            c.y,
+          ))
           let didConnect = false
           foreground.getChildren().forEach(c => {
             c.each(p => {
