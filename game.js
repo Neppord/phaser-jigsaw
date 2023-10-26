@@ -297,6 +297,7 @@ class Scene extends Phaser.Scene {
           })
           if (didConnect) {
             this.sound.play("connect")
+            this.cameras.main.shake(100, 0.005)
             if (selected.children.getArray()[0].getAll().length === this.puzzle.number_of_pieces) {
               foreground.postFX.addShine()
               table.postFX.addShine()
