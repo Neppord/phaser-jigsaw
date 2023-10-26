@@ -29,7 +29,88 @@ export class Puzzle {
   pieceIndex(x, y) {
     return y * this.width_in_pieces + x
   }
-  
+
+
+  vertical(x, y) {
+    const index = this.pieceIndex(x, y)
+    const rnd = new Phaser.Math.RandomDataGenerator([index])
+    return this.edge(rnd)
+  }
+
+  horizontal(x, y) {
+    const index = this.pieceIndex(x, y) << 8
+    const rnd = new Phaser.Math.RandomDataGenerator([index])
+    return this.edge(rnd)
+  }
+
+  edge(rnd) {
+    if (rnd.frac() > 0.5) {
+      return [0, 0, 0, 0, rnd.frac(), (rnd.frac() + 0.5) * -1, (rnd.frac() + 0.5) * -1, rnd.frac(), 0, 0, 0, 0]
+    } else {
+      return [0, 0, 0, 0, -rnd.frac(), (rnd.frac() + 0.5) * 1, (rnd.frac() + 0.5) * 1, -rnd.frac(), 0, 0, 0, 0]
+    }
+  }
+
+  piecePoints(x, y) {
+    const points = []
+    const dim =  this.piece
+    const delta = 0.05
+    points.push([dim.x(0), dim.y(0)])
+    // TOP
+    const interpolate = Phaser.Math.Interpolation.Bezier
+    if (y === 0) {
+      points.push([dim.x(1), dim.y(0)])
+    } else {
+      const ys = this.vertical(x, y)
+      for (let i = delta; i < 1; i += delta) {
+        const mix = interpolate(ys, i)
+        const offset = mix * dim.height_overlap
+        points.push([dim.x(i), dim.y(0) + offset])
+      }
+      points.push([dim.x(1), dim.y(0)])
+    }
+    // RIGHT
+    if (x === this.width_in_pieces - 1) {
+      points.push([dim.x(1), dim.y(1)])
+    } else {
+      const xs = this.horizontal(x + 1, y)
+      for (let i = delta; i < 1; i += delta) {
+        const mix = interpolate(xs, i)
+        const offset = mix * dim.width_overlap
+        points.push([dim.x(1) + offset, dim.y(i)])
+      }
+      points.push([dim.x(1), dim.y(1)])
+    }
+    // BOTTOM
+    if (y === this.height_in_pieces - 1) {
+      points.push([dim.x(0), dim.y(1)])
+    } else {
+      const ys = this.vertical(x, y + 1)
+      for (let i = 1 - delta; i >= 0; i -= delta) {
+        const mix = interpolate(ys, i)
+        const offset = mix * dim.height_overlap
+        points.push([dim.x(i), dim.y(1) + offset])
+      }
+      points.push([dim.x(0), dim.y(1)])
+    }
+    // LEFT
+    if (x === 0) {
+      points.push([dim.x(0), dim.y(0)])
+    } else {
+      const xs = this.horizontal(x, y)
+      for (let i = 1 - delta; i >= 0; i -= delta) {
+        const mix = interpolate(xs, i)
+        const offset = mix * dim.width_overlap
+        points.push([
+          dim.x(0) + offset,
+          dim.y(i),
+        ])
+      }
+      points.push([dim.x(0), dim.y(0)])
+    }
+    return points
+  }
+
 }
 export class Piece {
   width

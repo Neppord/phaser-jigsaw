@@ -17,92 +17,11 @@ class Scene extends Phaser.Scene {
     this.load.image("jigsaw", "ship-1366926_1920.jpg")
     this.load.audio("connect", "connect.wav")
   }
-  
-  vertical(x, y) {
-    const index = this.puzzle.pieceIndex(x, y)
-    const rnd = new Phaser.Math.RandomDataGenerator([index])
-    return this.edge(rnd)
-  }
-
-  horizontal(x, y) {
-    const index = this.puzzle.pieceIndex(x, y) << 8
-    const rnd = new Phaser.Math.RandomDataGenerator([index])
-    return this.edge(rnd)
-  }
-
-  edge(rnd) {
-    if (rnd.frac() > 0.5) {
-      return [0, 0, 0, 0, rnd.frac(), (rnd.frac() + 0.5) * -1, (rnd.frac() + 0.5) * -1, rnd.frac(), 0, 0, 0, 0]
-    } else {
-      return [0, 0, 0, 0, -rnd.frac(), (rnd.frac() + 0.5) * 1, (rnd.frac() + 0.5) * 1, -rnd.frac(), 0, 0, 0, 0]
-    }
-  }
-
-  piecePoints(x, y) {
-    const points = []
-    const dim =  this.piece
-    const delta = 0.05
-    points.push([dim.x(0), dim.y(0)])
-    // TOP
-    const interpolate = Phaser.Math.Interpolation.Bezier
-    if (y === 0) {
-      points.push([dim.x(1), dim.y(0)])
-    } else {
-      const ys = this.vertical(x, y)
-      for (let i = delta; i < 1; i += delta) {
-        const mix = interpolate(ys, i)
-        const offset = mix * dim.height_overlap
-        points.push([dim.x(i), dim.y(0) + offset])
-      }
-      points.push([dim.x(1), dim.y(0)])
-    }
-    // RIGHT
-    if (x === this.puzzle.width_in_pieces - 1) {
-      points.push([dim.x(1), dim.y(1)])
-    } else {
-      const xs = this.horizontal(x + 1, y)
-      for (let i = delta; i < 1; i += delta) {
-        const mix = interpolate(xs, i)
-        const offset = mix * dim.width_overlap
-        points.push([dim.x(1) + offset, dim.y(i)])
-      }
-      points.push([dim.x(1), dim.y(1)])
-    }
-    // BOTTOM
-    if (y === this.puzzle.height_in_pieces - 1) {
-      points.push([dim.x(0), dim.y(1)])
-    } else {
-      const ys = this.vertical(x, y + 1)
-      for (let i = 1 - delta; i >= 0; i -= delta) {
-        const mix = interpolate(ys, i)
-        const offset = mix * dim.height_overlap
-        points.push([dim.x(i), dim.y(1) + offset])
-      }
-      points.push([dim.x(0), dim.y(1)])
-    }
-    // LEFT
-    if (x === 0) {
-      points.push([dim.x(0), dim.y(0)])
-    } else {
-      const xs = this.horizontal(x, y)
-      for (let i = 1 - delta; i >= 0; i -= delta) {
-        const mix = interpolate(xs, i)
-        const offset = mix * dim.width_overlap
-        points.push([
-          dim.x(0) + offset,
-          dim.y(i),
-        ])
-      }
-      points.push([dim.x(0), dim.y(0)])
-    }
-    return points
-
-  }
 
   makePieceShape(x, y) {
     const ctx = this.make.graphics()
     ctx.fillPoints(
-      this.piecePoints(x, y).map(([x, y]) => new Phaser.Geom.Point(x, y)),
+      this.puzzle.piecePoints(x, y).map(([x, y]) => new Phaser.Geom.Point(x, y)),
       true,
     )
     return ctx
@@ -229,7 +148,7 @@ class Scene extends Phaser.Scene {
         piece.setData("container", container)
         // set the top left corner to be the origin
         // instead of the center
-        const points = this.piecePoints(x, y)
+        const points = this.puzzle.piecePoints(x, y)
         piece.setOrigin(0)
         const hitArea = new Phaser.Geom.Polygon(points)
         Phaser.Geom.Polygon.Translate(
