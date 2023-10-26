@@ -4,6 +4,7 @@ const EVENT = {
   clear_selection: "clear_selection",
   select: "select",
   move: "move",
+  connect: "connect",
 }
 
 class Scene extends Phaser.Scene {
@@ -45,6 +46,27 @@ class Scene extends Phaser.Scene {
     })
     this.events.on(EVENT.select, (x, y) => {
       foreground.add(grid[x][y])
+    })
+    this.events.on(EVENT.connect, (cx, cy, ox, oy) => {
+      const c = grid[cx][cy]
+      const o = grid[ox][oy]
+      if (c === o) return
+      o.each(op => {
+        grid[op.getData("x")][op.getData("y")] = c
+        c.add(op)
+      })
+      o.removeAll()
+      const hitAreas = c.getData("hitAreas")
+      o.getData("hitAreas").forEach(ha => hitAreas.push(ha))
+      
+      o.destroy(true)
+      this.sound.play("connect")
+      this.cameras.main.shake(100, 0.005)
+      if (foreground.getChildren()[0].getAll().length === this.puzzle.number_of_pieces) {
+        foreground.postFX.addShine()
+        table.postFX.addShine()
+        this.cameras.main.fadeIn()
+      }
     })
     foreground.bringToTop()
     foreground.postFX.addGlow(0xFFFF00)
@@ -190,28 +212,17 @@ class Scene extends Phaser.Scene {
                 .filter(other => other !== c)
                 .filter(other => Math.abs(c.x - other.x) < this.piece.width_overlap)
                 .filter(other => Math.abs(c.y - other.y) < this.piece.height_overlap)
-                .forEach(other => {
-                  other.each(op => {
-                    grid[op.getData("x")][op.getData("y")] = c
-                    c.add(op)
-                    didConnect = true
-                  })
-                  other.removeAll()
-                  const hitAreas = c.getData("hitAreas")
-                  other.getData("hitAreas").forEach(ha => hitAreas.push(ha))
-                  other.destroy(true)
+                .forEach(o => {
+                  this.events.emit(
+                    EVENT.connect,
+                    c.getData("x"),
+                    c.getData("y"),
+                    o.getData("x"),
+                    o.getData("y"),
+                  )
                 })
             })
           })
-          if (didConnect) {
-            this.sound.play("connect")
-            this.cameras.main.shake(100, 0.005)
-            if (foreground.getChildren()[0].getAll().length === this.puzzle.number_of_pieces) {
-              foreground.postFX.addShine()
-              table.postFX.addShine()
-              this.cameras.main.fadeIn()
-            }
-          }
         })
         container.setScale(0)
         toRandomise.push(container)
