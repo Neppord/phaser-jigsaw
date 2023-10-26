@@ -28,41 +28,9 @@ class Scene extends Phaser.Scene {
   }
 
   create() {
-    const dim =  this.piece
-    const atlas = this.textures
-      .addDynamicTexture(
-        "pieces",
-        this.puzzle.width_in_pieces * dim.total_width,
-        this.puzzle.height_in_pieces * dim.total_height,
-      )
-    atlas.fill(0x000000, 0)
-    const jigsaw = this.make
-      .image({key: "jigsaw"})
-      .setOrigin(0, 0)
-    atlas.beginDraw()
-    for (let y = 0; y < this.puzzle.height_in_pieces; y++) {
-      for (let x = 0; x < this.puzzle.width_in_pieces; x++) {
-        const m = this.makePieceShape(x, y)
-        m.setPosition(dim.total_width * x, dim.total_height * y)
-        jigsaw.setMask(m.createGeometryMask())
-        atlas.batchDraw(
-          jigsaw,
-          dim.width_overlap + 2 * dim.width_overlap * x,
-          dim.height_overlap + 2 * dim.height_overlap * y,
-        )
-        jigsaw.clearMask(true)
-        atlas.add(
-          y * this.puzzle.width_in_pieces + x,
-          0,
-          dim.total_width * x,
-          dim.total_height * y,
-          dim.total_width,
-          dim.total_height,
-        )
-      }
-    }
-    atlas.endDraw()
-    jigsaw.destroy(true)
+    
+    this.create_atlas()
+    
     const selected = this.add.group()
     const table = this.add.layer()
     const foreground = this.add.layer()
@@ -126,8 +94,8 @@ class Scene extends Phaser.Scene {
     for (let y = 0; y < this.puzzle.height_in_pieces; y++) {
       for (let x = 0; x < this.puzzle.width_in_pieces; x++) {
         const frameNumber = this.puzzle.pieceIndex(x, y)
-        const xOffset = x * dim.width - dim.width_overlap
-        const yOffset = y * dim.height - dim.height_overlap
+        const xOffset = x * this.piece.width - this.piece.width_overlap
+        const yOffset = y * this.piece.height - this.piece.height_overlap
         const piece =
           this.make.image({
               x: xOffset,
@@ -137,12 +105,12 @@ class Scene extends Phaser.Scene {
             }, false,
           )
         const container = this.add.container(
-          Phaser.Math.Between(-xOffset, this.puzzle.width - xOffset - dim.width),
-          Phaser.Math.Between(-yOffset, this.puzzle.height - yOffset - dim.height),
+          Phaser.Math.Between(-xOffset, this.puzzle.width - xOffset - this.piece.width),
+          Phaser.Math.Between(-yOffset, this.puzzle.height - yOffset - this.piece.height),
           piece,
         )
         grid[x][y] = container
-        piece.setSize(dim.width, dim.height)
+        piece.setSize(this.piece.width, this.piece.height)
         piece.setData("x", x)
         piece.setData("y", y)
         piece.setData("container", container)
@@ -153,8 +121,8 @@ class Scene extends Phaser.Scene {
         const hitArea = new Phaser.Geom.Polygon(points)
         Phaser.Geom.Polygon.Translate(
           hitArea,
-          x * dim.width - dim.width_overlap,
-          y * dim.height - dim.height_overlap,
+          x * this.piece.width - this.piece.width_overlap,
+          y * this.piece.height - this.piece.height_overlap,
         )
         container.setData("hitAreas", [hitArea])
         container.setInteractive({
@@ -199,8 +167,8 @@ class Scene extends Phaser.Scene {
               if (gridY > 0) candidates.add(grid[gridX][gridY - 1])
               Array.from(candidates)
                 .filter(other => other !== c)
-                .filter(other => Math.abs(c.x - other.x) < dim.width_overlap)
-                .filter(other => Math.abs(c.y - other.y) < dim.height_overlap)
+                .filter(other => Math.abs(c.x - other.x) < this.piece.width_overlap)
+                .filter(other => Math.abs(c.y - other.y) < this.piece.height_overlap)
                 .forEach(other => {
                   other.each(op => {
                     grid[op.getData("x")][op.getData("y")] = c
@@ -240,6 +208,43 @@ class Scene extends Phaser.Scene {
     })
     const hud = this.add.text(0, 0, `Pieces: ${this.puzzle.number_of_pieces}`)
     hud.setScrollFactor(0)
+  }
+
+  create_atlas() {
+    const atlas = this.textures
+      .addDynamicTexture(
+        "pieces",
+        this.puzzle.width_in_pieces * this.piece.total_width,
+        this.puzzle.height_in_pieces * this.piece.total_height,
+      )
+    atlas.fill(0x000000, 0)
+    const jigsaw = this.make
+      .image({key: "jigsaw"})
+      .setOrigin(0, 0)
+    atlas.beginDraw()
+    for (let y = 0; y < this.puzzle.height_in_pieces; y++) {
+      for (let x = 0; x < this.puzzle.width_in_pieces; x++) {
+        const m = this.makePieceShape(x, y)
+        m.setPosition(this.piece.total_width * x, this.piece.total_height * y)
+        jigsaw.setMask(m.createGeometryMask())
+        atlas.batchDraw(
+          jigsaw,
+          this.piece.width_overlap + 2 * this.piece.width_overlap * x,
+          this.piece.height_overlap + 2 * this.piece.height_overlap * y,
+        )
+        jigsaw.clearMask(true)
+        atlas.add(
+          y * this.puzzle.width_in_pieces + x,
+          0,
+          this.piece.total_width * x,
+          this.piece.total_height * y,
+          this.piece.total_width,
+          this.piece.total_height,
+        )
+      }
+    }
+    atlas.endDraw()
+    jigsaw.destroy(true)
   }
 }
 
