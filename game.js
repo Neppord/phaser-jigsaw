@@ -130,22 +130,22 @@ class Scene extends Phaser.Scene {
         let shift = this.input.keyboard.addKey(
           Phaser.Input.Keyboard.KeyCodes.SHIFT,
         )
-        container.on('dragstart', function () {
-          if (!foreground.getChildren().includes(this)) {
+        container.on('dragstart', () => {
+          if (!foreground.getChildren().includes(container)) {
             if (shift.isDown) {
-              foreground.add(this)
+              foreground.add(container)
             } else {
               table.add(foreground.getChildren().map(o => o))
-              foreground.add(this)
+              foreground.add(container)
             }
           }
         })
-        container.on('drag', function (pointer, dragX, dragY) {
-          if (foreground.getChildren().includes(this)) {
+        container.on('drag', (pointer, dragX, dragY) => {
+          if (foreground.getChildren().includes(container)) {
             Phaser.Actions.IncXY(
               foreground.getChildren(),
-              dragX - this.x,
-              dragY - this.y,
+              dragX - container.x,
+              dragY - container.y,
             )
           }
         })
