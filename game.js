@@ -90,7 +90,7 @@ class Scene extends Phaser.Scene {
     o.destroy(true)
     this.sound.play("connect")
     this.cameras.main.shake(100, 0.005)
-    if (this.my_hand().getChildren()[0].getAll().length === this.puzzle.number_of_pieces) {
+    if ((this.selected())[0].getAll().length === this.puzzle.number_of_pieces) {
       this.my_hand().postFX.addShine()
       table.postFX.addShine()
       this.cameras.main.fadeIn()
@@ -156,15 +156,9 @@ class Scene extends Phaser.Scene {
           Phaser.Input.Keyboard.KeyCodes.SHIFT,
         )
         container.on('dragstart', () => {
-          if (!this.my_hand().getChildren().includes(container)) {
+          if (!this.selected().includes(container)) {
             if (shift.isDown) {
-              this.game.events.emit(
-                EVENT.select,
-                this.player_id,
-                container.getData("x"),
-                container.getData("y"),
-              )
-              this.game.events.emit(EVENT.peer, {
+              this.broadcast({
                 name: EVENT.select,
                 args: [
                   this.player_id,
@@ -173,18 +167,11 @@ class Scene extends Phaser.Scene {
                 ],
               })
             } else {
-              this.game.events.emit(EVENT.clear_selection, this.player_id)
-              this.game.events.emit(EVENT.peer, {
+              this.broadcast({
                 name: EVENT.clear_selection,
                 args: [this.player_id],
               })
-              this.game.events.emit(
-                EVENT.select,
-                this.player_id,
-                container.getData("x"),
-                container.getData("y"),
-              )
-              this.game.events.emit(EVENT.peer, {
+              this.broadcast({
                 name: EVENT.select,
                 args: [
                   this.player_id,
@@ -196,23 +183,20 @@ class Scene extends Phaser.Scene {
           }
         })
         container.on('drag', (pointer, dragX, dragY) => {
-          if (this.my_hand().getChildren().includes(container)) {
+          if (this.selected().includes(container)) {
             Phaser.Actions.IncXY(
-              this.my_hand().getChildren(),
+              this.selected(),
               dragX - container.x,
               dragY - container.y,
             )
           }
         })
         container.on('dragend', () => {
-          this.my_hand().getChildren().forEach(c => this.game.events.emit(
-            EVENT.move,
-            c.getData("x"),
-            c.getData("y"),
-            c.x,
-            c.y,
-          ))
-          this.my_hand().getChildren().forEach(c => {
+          this.selected().forEach(c => this.send({
+            name: EVENT.move,
+            args: [c.getData("x"), c.getData("y"), c.x, c.y],
+          }))
+          this.selected().forEach(c => {
             c.each(p => {
               const gridX = p.getData("x")
               const gridY = p.getData("y")
@@ -251,6 +235,22 @@ class Scene extends Phaser.Scene {
       duration: 500,
       delay: this.tweens.stagger([10, 1000]),
     })
+  }
+
+  send(event) {
+    return this.game.events.emit(
+      EVENT.peer,
+      event,
+    )
+  }
+
+  selected() {
+    return this.my_hand().getChildren()
+  }
+
+  broadcast(event) {
+    this.game.events.emit(event.name, ...event.args)
+    this.game.events.emit(EVENT.peer, event)
   }
 
   setup_pointer() {
@@ -306,6 +306,7 @@ class Scene extends Phaser.Scene {
 
     this.game.events.on(EVENT.clear_selection, this.clear_selection, this)
     this.game.events.on(EVENT.select, this.select, this)
+    this.game.events.on(EVENT.move, this.move, this)
     this.game.events.on(EVENT.connect, this.connect, this)
 
     this.setup_pointer()
@@ -314,6 +315,18 @@ class Scene extends Phaser.Scene {
     this.game.events.on(EVENT.join_game, (players, recordings) => this.join_game(players, recordings))
     this.game.events.on(EVENT.client_joining, id => this.client_joining(id))
 
+  }
+
+  move(x_index, y_index, x, y) {
+    this.tweens.add({
+      targets: this.grid[x_index][y_index],
+      ease: Phaser.Math.Easing.Cubic.InOut,
+      props: {
+        x: x,
+        y: y,
+      },
+      duration: 100
+    })
   }
 
   client_joining(id) {
