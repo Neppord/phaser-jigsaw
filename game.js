@@ -90,9 +90,12 @@ class Scene extends Phaser.Scene {
     o.destroy(true)
     this.sound.play("connect")
     this.cameras.main.shake(100, 0.005)
-    if ((this.selected())[0].getAll().length === this.puzzle.number_of_pieces) {
-      this.my_hand().postFX.addShine()
-      table.postFX.addShine()
+    const groups = new Set(this.grid.flat())
+    if (groups.size === 1) {
+      this.table.postFX.addShine()
+      for (let id in this.hands) {
+        this.hands[id].postFX.addShine()
+      }
       this.cameras.main.fadeIn()
     }
 
