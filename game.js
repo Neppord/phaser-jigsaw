@@ -56,7 +56,9 @@ class Scene extends Phaser.Scene {
   }
 
   join_game(players, recordings) {
+    this.table = this.add.layer()
     this.players = players
+    console.dir(players)
     for (const id in players) {
       const hand = this.add.layer()
       hand.postFX.addGlow(players[id].color)
@@ -64,15 +66,15 @@ class Scene extends Phaser.Scene {
     }
     this.create_puzzle()
   }
-  
+
   clear_selection(player_id) {
-    this.table.add(this.hands[player_id].getChildren().map(c => c))
+    if (this.hands[player_id]) this.table.add(this.hands[player_id].getChildren().map(c => c))
   }
-  
+
   select(player_id, x, y) {
     this.hands[player_id].add(this.grid[x][y])
   }
-  
+
   connect(cx, cy, ox, oy) {
     const c = this.grid[cx][cy]
     const o = this.grid[ox][oy]
@@ -93,7 +95,7 @@ class Scene extends Phaser.Scene {
       table.postFX.addShine()
       this.cameras.main.fadeIn()
     }
-    
+
   }
 
 
@@ -156,20 +158,40 @@ class Scene extends Phaser.Scene {
         container.on('dragstart', () => {
           if (!this.my_hand().getChildren().includes(container)) {
             if (shift.isDown) {
-              this.events.emit(
+              this.game.events.emit(
                 EVENT.select,
                 this.player_id,
                 container.getData("x"),
                 container.getData("y"),
               )
+              this.game.events.emit(EVENT.peer, {
+                name: EVENT.select,
+                args: [
+                  this.player_id,
+                  container.getData("x"),
+                  container.getData("y"),
+                ],
+              })
             } else {
-              this.events.emit(EVENT.clear_selection, this.player_id)
-              this.events.emit(
+              this.game.events.emit(EVENT.clear_selection, this.player_id)
+              this.game.events.emit(EVENT.peer, {
+                name: EVENT.clear_selection,
+                args: [this.player_id],
+              })
+              this.game.events.emit(
                 EVENT.select,
                 this.player_id,
                 container.getData("x"),
                 container.getData("y"),
               )
+              this.game.events.emit(EVENT.peer, {
+                name: EVENT.select,
+                args: [
+                  this.player_id,
+                  container.getData("x"),
+                  container.getData("y"),
+                ],
+              })
             }
           }
         })
@@ -183,7 +205,7 @@ class Scene extends Phaser.Scene {
           }
         })
         container.on('dragend', () => {
-          this.my_hand().getChildren().forEach(c => this.events.emit(
+          this.my_hand().getChildren().forEach(c => this.game.events.emit(
             EVENT.move,
             c.getData("x"),
             c.getData("y"),
@@ -204,7 +226,7 @@ class Scene extends Phaser.Scene {
                 Math.abs(c.x - o.x) < this.piece.width_overlap &&
                 Math.abs(c.y - o.y) < this.piece.height_overlap,
               ).forEach(o => {
-                this.events.emit(
+                this.game.events.emit(
                   EVENT.connect,
                   c.getData("x"),
                   c.getData("y"),
@@ -246,7 +268,7 @@ class Scene extends Phaser.Scene {
         }
         this.input.on(Phaser.Input.Events.POINTER_MOVE, move)
         this.input.once("pointerup", () => {
-          if (!moved) this.events.emit(EVENT.clear_selection, this.player_id)
+          if (!moved) this.game.events.emit(EVENT.clear_selection, this.player_id)
           this.input.off(Phaser.Input.Events.POINTER_MOVE, move)
         })
       }
@@ -281,22 +303,22 @@ class Scene extends Phaser.Scene {
   create() {
     this.create_atlas()
     this.create_hud()
-    
-    this.events.on(EVENT.clear_selection, this.clear_selection, this)
-    this.events.on(EVENT.select, this.select, this)
-    this.events.on(EVENT.connect, this.connect, this)
+
+    this.game.events.on(EVENT.clear_selection, this.clear_selection, this)
+    this.game.events.on(EVENT.select, this.select, this)
+    this.game.events.on(EVENT.connect, this.connect, this)
 
     this.setup_pointer()
-    
+
     this.game.events.on(EVENT.new_game, () => this.new_game())
     this.game.events.on(EVENT.join_game, (players, recordings) => this.join_game(players, recordings))
     this.game.events.on(EVENT.client_joining, id => this.client_joining(id))
-    
+
   }
 
   client_joining(id) {
     console.log("joining", id)
-    this.players[id]({color: this.colors.pop()})
+    this.add_player(id)
     this.game.events.emit(EVENT.peer, {
       name: EVENT.join_game,
       args: [
@@ -380,18 +402,26 @@ const peer = new Peer(undefined, {
   debug: 1,
 })
 const handle_connection = client => {
-  console.log("receiving connection")
-  client.on("data", event => {
-    game.events.emit(event.name, ...event.args)
+  client.on("open", () => {
+    // from game to client
+    game.events.on(EVENT.peer, event => {
+      console.log("Sending event", event)
+      client.send(event)
+    })
+    // from client to game
+    client.on("data", event => {
+      console.log("Received event", event)
+      game.events.emit(event.name, ...event.args)
+    })
+    // start joining
+    game.events.emit(EVENT.client_joining, client.peer)
   })
-  game.events.emit(EVENT.client_joining, client.peer)
-  game.events.on(EVENT.peer, event => peer.send(event))
 }
 if (location.hash) {
   const host_id = location.hash.slice(1)
   peer.on("open", id => {
     game.events.emit(EVENT.player_id, id)
-    const host = peer.connect(host_id)
+    const host = peer.connect(host_id, {reliable: true})
     peer.once("error", e => {
       if (e.type === "peer-unavailable") {
         game.events.emit(EVENT.game_id, id)
@@ -400,12 +430,12 @@ if (location.hash) {
       }
     })
     host.on("open", () => {
-      game.events.emit(EVENT.game_id, host_id)
-      game.events.emit(EVENT.join_game)
       game.events.on(EVENT.peer, event => host.send(event))
-    })
-    host.on("data", event => {
-      game.events.emit(event.name, ...event.args)
+      host.on("data", event => {
+        console.log("received event", event)
+        game.events.emit(event.name, ...event.args)
+      })
+      game.events.emit(EVENT.game_id, host_id)
     })
   })
 } else {
