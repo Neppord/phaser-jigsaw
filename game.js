@@ -255,7 +255,7 @@ class Scene extends Phaser.Scene {
 
   broadcast(event) {
     this.game.events.emit(event.name, ...event.args)
-    this.game.events.emit(EVENT.peer, event)
+    this.send(event)
   }
 
   setup_pointer() {
@@ -273,7 +273,12 @@ class Scene extends Phaser.Scene {
         }
         this.input.on(Phaser.Input.Events.POINTER_MOVE, move)
         this.input.once("pointerup", () => {
-          if (!moved) this.game.events.emit(EVENT.clear_selection, this.player_id)
+          if (!moved) {
+            this.broadcast({
+              name: EVENT.clear_selection,
+              args: [this.player_id],
+            })
+          }
           this.input.off(Phaser.Input.Events.POINTER_MOVE, move)
         })
       }
