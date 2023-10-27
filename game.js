@@ -220,7 +220,7 @@ class Scene extends Phaser.Scene {
                     c.getData("y"),
                     o.getData("x"),
                     o.getData("y"),
-                  ]
+                  ],
                 })
               })
             })
@@ -335,7 +335,7 @@ class Scene extends Phaser.Scene {
         x: x,
         y: y,
       },
-      duration: 100
+      duration: 100,
     })
   }
 
@@ -469,4 +469,3 @@ if (location.hash) {
   })
   peer.on("connection", handle_connection)
 }
-//peer.on("error", e => console.log(e))
