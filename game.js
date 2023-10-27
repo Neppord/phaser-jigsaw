@@ -210,13 +210,15 @@ class Scene extends Phaser.Scene {
                 Math.abs(c.x - o.x) < this.piece.width_overlap &&
                 Math.abs(c.y - o.y) < this.piece.height_overlap,
               ).forEach(o => {
-                this.game.events.emit(
-                  EVENT.connect,
-                  c.getData("x"),
-                  c.getData("y"),
-                  o.getData("x"),
-                  o.getData("y"),
-                )
+                this.broadcast({
+                  name: EVENT.connect,
+                  args: [
+                    c.getData("x"),
+                    c.getData("y"),
+                    o.getData("x"),
+                    o.getData("y"),
+                  ]
+                })
               })
             })
           })
