@@ -7,22 +7,38 @@ const EVENT = {
   connect: "connect",
   game_id: "game_id",
   player_id: "player_id",
+  new_game: "new_game",
+  join_game: "join_game",
+  peer: "peer",
+  client_joining: "client_joining",
 }
 
 class Scene extends Phaser.Scene {
   puzzle
   game_id
   player_id
+  colors
+  players
+  recording
+  hands
+  grid
+  table
 
   init(data) {
     this.puzzle = new Puzzle(
       1920,
       1080,
-      16 * 2,
-      9 * 2,
+      3,
+      3,
     )
     console.dir(this.puzzle)
     this.piece = this.puzzle.piece
+    this.colors = [0x00FF00, 0xFF0000, 0xFFFF00]
+    this.players = {}
+    this.hands = {}
+    this.grid = new Array(this.puzzle.width_in_pieces)
+      .fill([])
+      .map(() => new Array(this.puzzle.height_in_pieces))
   }
 
   preload() {
@@ -39,100 +55,70 @@ class Scene extends Phaser.Scene {
     return ctx
   }
 
-  create() {
+  join_game(players, recordings) {
+    this.players = players
+    for (const id in players) {
+      const hand = this.add.layer()
+      hand.postFX.addGlow(players[id].color)
+      this.hands[id] = hand
+    }
+    this.create_puzzle()
+  }
+  
+  clear_selection(player_id) {
+    this.table.add(this.hands[player_id].getChildren().map(c => c))
+  }
+  
+  select(player_id, x, y) {
+    this.hands[player_id].add(this.grid[x][y])
+  }
+  
+  connect(cx, cy, ox, oy) {
+    const c = this.grid[cx][cy]
+    const o = this.grid[ox][oy]
+    if (c === o) return
+    o.each(op => {
+      this.grid[op.getData("x")][op.getData("y")] = c
+      c.add(op)
+    })
+    o.removeAll()
+    const hitAreas = c.getData("hitAreas")
+    o.getData("hitAreas").forEach(ha => hitAreas.push(ha))
 
-    this.create_atlas()
+    o.destroy(true)
+    this.sound.play("connect")
+    this.cameras.main.shake(100, 0.005)
+    if (this.my_hand().getChildren()[0].getAll().length === this.puzzle.number_of_pieces) {
+      this.my_hand().postFX.addShine()
+      table.postFX.addShine()
+      this.cameras.main.fadeIn()
+    }
+    
+  }
 
-    const table = this.add.layer()
-    const foreground = this.add.layer()
-    this.events.on(EVENT.clear_selection, () => {
-      table.add(foreground.getChildren().map(c => c))
-    })
-    this.events.on(EVENT.select, (x, y) => {
-      foreground.add(grid[x][y])
-    })
-    this.events.on(EVENT.connect, (cx, cy, ox, oy) => {
-      const c = grid[cx][cy]
-      const o = grid[ox][oy]
-      if (c === o) return
-      o.each(op => {
-        grid[op.getData("x")][op.getData("y")] = c
-        c.add(op)
-      })
-      o.removeAll()
-      const hitAreas = c.getData("hitAreas")
-      o.getData("hitAreas").forEach(ha => hitAreas.push(ha))
 
-      o.destroy(true)
-      this.sound.play("connect")
-      this.cameras.main.shake(100, 0.005)
-      if (foreground.getChildren()[0].getAll().length === this.puzzle.number_of_pieces) {
-        foreground.postFX.addShine()
-        table.postFX.addShine()
-        this.cameras.main.fadeIn()
-      }
-    })
-    foreground.bringToTop()
-    foreground.postFX.addGlow(0xFFFF00)
+  new_game() {
+    this.table = this.add.layer()
+    this.add_player(this.player_id)
+    this.create_puzzle()
+  }
 
-    this.input.on("pointerdown", (pointer, objects) => {
-      if (objects.length === 0) {
-        let moved = false
-        let scrollXStart = this.cameras.main.scrollX
-        let scrollYStart = this.cameras.main.scrollY
-        let move = (pointer) => {
-          moved = true
-          const xDelta = pointer.x - pointer.downX
-          const yDelta = pointer.y - pointer.downY
-          this.cameras.main.scrollX = scrollXStart - xDelta
-          this.cameras.main.scrollY = scrollYStart - yDelta
-        }
-        this.input.on(Phaser.Input.Events.POINTER_MOVE, move)
-        this.input.once("pointerup", () => {
-          if (!moved) this.events.emit(EVENT.clear_selection)
-          this.input.off(Phaser.Input.Events.POINTER_MOVE, move)
-        })
-      }
-    })
-    let lastClick = -1
-    this.input.on("pointerup", (pointer) => {
-      if (pointer.upTime - lastClick < 250) {
-        this.scale.startFullscreen()
-      }
-      lastClick = pointer.upTime
-    })
-    const shift = this.input.keyboard.addKey(
-      Phaser.Input.Keyboard.KeyCodes.SHIFT,
-    )
-    let zoomLvl = 800
-    this.cameras.main.zoom = zoomLvl / 1000
-    this.input.on(Phaser.Input.Events.POINTER_WHEEL, (p, o, x, y, z) => {
-      if (shift.isDown) {
-        zoomLvl = Math.max(250, Math.min(4000, zoomLvl - y))
-        this.cameras.main.zoom = zoomLvl / 1000
-      } else {
-        this.cameras.main.scrollX += x
-        this.cameras.main.scrollY += y
-      }
-    })
+  create_puzzle() {
     const toRandomise = []
-    const grid = new Array(this.puzzle.width_in_pieces)
-      .fill([])
-      .map(() => new Array(this.puzzle.height_in_pieces))
-
     for (let y = 0; y < this.puzzle.height_in_pieces; y++) {
       for (let x = 0; x < this.puzzle.width_in_pieces; x++) {
         const frameNumber = this.puzzle.pieceIndex(x, y)
         const xOffset = x * this.piece.width - this.piece.width_overlap
         const yOffset = y * this.piece.height - this.piece.height_overlap
-        const piece =
-          this.make.image({
-              x: xOffset,
-              y: yOffset,
-              key: "pieces",
-              frame: frameNumber,
-            }, false,
-          )
+        const piece = this.make.image(
+          {
+            x: xOffset,
+            y: yOffset,
+            key: "pieces",
+            frame: frameNumber,
+          },
+          false,
+        )
         const container = this.add.container(
           Phaser.Math.Between(-xOffset, this.puzzle.width - xOffset - this.piece.width),
           Phaser.Math.Between(-yOffset, this.puzzle.height - yOffset - this.piece.height),
@@ -140,7 +126,7 @@ class Scene extends Phaser.Scene {
         )
         piece.setSize(this.piece.width, this.piece.height)
 
-        grid[x][y] = container
+        this.grid[x][y] = container
         container.setData("x", x)
         container.setData("y", y)
         piece.setData("x", x)
@@ -163,22 +149,24 @@ class Scene extends Phaser.Scene {
             return c.getData("hitAreas").some(ha => ha.contains(x, y))
           },
         })
-        table.add(container)
+        this.table.add(container)
         let shift = this.input.keyboard.addKey(
           Phaser.Input.Keyboard.KeyCodes.SHIFT,
         )
         container.on('dragstart', () => {
-          if (!foreground.getChildren().includes(container)) {
+          if (!this.my_hand().getChildren().includes(container)) {
             if (shift.isDown) {
               this.events.emit(
                 EVENT.select,
+                this.player_id,
                 container.getData("x"),
                 container.getData("y"),
               )
             } else {
-              this.events.emit(EVENT.clear_selection)
+              this.events.emit(EVENT.clear_selection, this.player_id)
               this.events.emit(
                 EVENT.select,
+                this.player_id,
                 container.getData("x"),
                 container.getData("y"),
               )
@@ -186,31 +174,31 @@ class Scene extends Phaser.Scene {
           }
         })
         container.on('drag', (pointer, dragX, dragY) => {
-          if (foreground.getChildren().includes(container)) {
+          if (this.my_hand().getChildren().includes(container)) {
             Phaser.Actions.IncXY(
-              foreground.getChildren(),
+              this.my_hand().getChildren(),
               dragX - container.x,
               dragY - container.y,
             )
           }
         })
         container.on('dragend', () => {
-          foreground.getChildren().forEach(c => this.events.emit(
+          this.my_hand().getChildren().forEach(c => this.events.emit(
             EVENT.move,
             c.getData("x"),
             c.getData("y"),
             c.x,
             c.y,
           ))
-          foreground.getChildren().forEach(c => {
+          this.my_hand().getChildren().forEach(c => {
             c.each(p => {
               const gridX = p.getData("x")
               const gridY = p.getData("y")
               const candidates = new Set()
-              if (gridX < this.puzzle.width_in_pieces - 1) candidates.add(grid[gridX + 1][gridY])
-              if (gridX > 0) candidates.add(grid[gridX - 1][gridY])
-              if (gridY < this.puzzle.height_in_pieces - 1) candidates.add(grid[gridX][gridY + 1])
-              if (gridY > 0) candidates.add(grid[gridX][gridY - 1])
+              if (gridX < this.puzzle.width_in_pieces - 1) candidates.add(this.grid[gridX + 1][gridY])
+              if (gridX > 0) candidates.add(this.grid[gridX - 1][gridY])
+              if (gridY < this.puzzle.height_in_pieces - 1) candidates.add(this.grid[gridX][gridY + 1])
+              if (gridY > 0) candidates.add(this.grid[gridX][gridY - 1])
               Array.from(candidates).filter(o =>
                 o !== c &&
                 Math.abs(c.x - o.x) < this.piece.width_overlap &&
@@ -241,7 +229,86 @@ class Scene extends Phaser.Scene {
       duration: 500,
       delay: this.tweens.stagger([10, 1000]),
     })
-    const hud = this.add.text(0, 0, `Pieces: ${this.puzzle.number_of_pieces}`)
+  }
+
+  setup_pointer() {
+    this.input.on("pointerdown", (pointer, objects) => {
+      if (objects.length === 0) {
+        let moved = false
+        let scrollXStart = this.cameras.main.scrollX
+        let scrollYStart = this.cameras.main.scrollY
+        let move = (pointer) => {
+          moved = true
+          const xDelta = pointer.x - pointer.downX
+          const yDelta = pointer.y - pointer.downY
+          this.cameras.main.scrollX = scrollXStart - xDelta
+          this.cameras.main.scrollY = scrollYStart - yDelta
+        }
+        this.input.on(Phaser.Input.Events.POINTER_MOVE, move)
+        this.input.once("pointerup", () => {
+          if (!moved) this.events.emit(EVENT.clear_selection, this.player_id)
+          this.input.off(Phaser.Input.Events.POINTER_MOVE, move)
+        })
+      }
+    })
+    let lastClick = -1
+    this.input.on("pointerup", (pointer) => {
+      if (pointer.upTime - lastClick < 250) {
+        this.scale.startFullscreen()
+      }
+      lastClick = pointer.upTime
+    })
+    let zoomLvl = 800
+    this.cameras.main.zoom = zoomLvl / 1000
+    this.input.on(Phaser.Input.Events.POINTER_WHEEL, (p, o, x, y, z) => {
+      zoomLvl = Math.max(250, Math.min(4000, zoomLvl - y))
+      this.cameras.main.zoom = zoomLvl / 1000
+    })
+  }
+
+  my_hand() {
+    return this.hands[this.player_id]
+  }
+
+  add_player(player_id) {
+    const color = this.colors.pop()
+    const hand = this.add.layer()
+    this.players[player_id] = {color: color}
+    this.hands[player_id] = hand
+    hand.postFX.addGlow(color)
+  }
+
+  create() {
+    this.create_atlas()
+    this.create_hud()
+    
+    this.events.on(EVENT.clear_selection, this.clear_selection, this)
+    this.events.on(EVENT.select, this.select, this)
+    this.events.on(EVENT.connect, this.connect, this)
+
+    this.setup_pointer()
+    
+    this.game.events.on(EVENT.new_game, () => this.new_game())
+    this.game.events.on(EVENT.join_game, (players, recordings) => this.join_game(players, recordings))
+    this.game.events.on(EVENT.client_joining, id => this.client_joining(id))
+    
+  }
+
+  client_joining(id) {
+    console.log("joining", id)
+    this.players[id]({color: this.colors.pop()})
+    this.game.events.emit(EVENT.peer, {
+      name: EVENT.join_game,
+      args: [
+        this.players,
+        this.recording,
+      ],
+    })
+  }
+
+  create_hud() {
+    this.cameras.main.zoom = 800 / 1000
+    const hud = this.add.text(0, 50, `Pieces: ${this.puzzle.number_of_pieces}`)
     hud.setScrollFactor(0)
     this.game.events.on(EVENT.player_id, (id) => {
       this.player_id = id
@@ -310,15 +377,17 @@ const game = new Phaser.Game({
 })
 
 const peer = new Peer(undefined, {
-  debug: 1
+  debug: 1,
 })
 const handle_connection = client => {
-    console.log("receiving connection")
-    client.on("data", data => {
-      console.log(data)
-    })
+  console.log("receiving connection")
+  client.on("data", event => {
+    game.events.emit(event.name, ...event.args)
+  })
+  game.events.emit(EVENT.client_joining, client.peer)
+  game.events.on(EVENT.peer, event => peer.send(event))
 }
-if (location.hash){
+if (location.hash) {
   const host_id = location.hash.slice(1)
   peer.on("open", id => {
     game.events.emit(EVENT.player_id, id)
@@ -326,19 +395,24 @@ if (location.hash){
     peer.once("error", e => {
       if (e.type === "peer-unavailable") {
         game.events.emit(EVENT.game_id, id)
+        game.events.emit(EVENT.new_game)
         peer.on("connection", handle_connection)
       }
     })
     host.on("open", () => {
       game.events.emit(EVENT.game_id, host_id)
-      host.send("hi")
-      console.log(`sending hi to ${host_id} from ${id}`)
+      game.events.emit(EVENT.join_game)
+      game.events.on(EVENT.peer, event => host.send(event))
+    })
+    host.on("data", event => {
+      game.events.emit(event.name, ...event.args)
     })
   })
 } else {
   peer.on("open", id => {
     game.events.emit(EVENT.game_id, id)
     game.events.emit(EVENT.player_id, id)
+    game.events.emit(EVENT.new_game)
   })
   peer.on("connection", handle_connection)
 }
