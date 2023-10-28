@@ -360,6 +360,11 @@ class Scene extends Phaser.Scene {
   }
   client_leaving(id) {
     const {color} = this.players[id]
+    const color_hex = "#" + color
+      .toString(16)
+      .toUpperCase()
+      .padStart(6, "0")
+    console.log(`player with id "${id}" and color "${color_hex}" is leaving `)
     this.colors.push(color)
     delete this.players[id]
   }
