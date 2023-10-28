@@ -458,12 +458,14 @@ const handle_connection = client => {
         .forEach( c => c.send(event))
     })
     client.on("close", () => {
+      console.log(`client ${client.peer} closed`)
       clients.delete(client)
       game.events.off(EVENT.peer, client.send, client)
       game.events.emit(EVENT.client_leaving, client.peer)
     })
     
     client.on("error", () => {
+      console.log(`client ${client.peer} had error`)
       clients.delete(client)
       game.events.off(EVENT.peer, client.send, client)
       game.events.emit(EVENT.client_leaving, client.peer)
