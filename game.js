@@ -12,11 +12,13 @@ const EVENT = {
   peer: "peer",
   record: "record",
   client_joining: "client_joining",
+  client_leaving: "client_leaving",
 }
 
 class Scene extends Phaser.Scene {
   game_id
   player_id
+  color
   table
   
   puzzle= new Puzzle(
@@ -53,26 +55,24 @@ class Scene extends Phaser.Scene {
 
   join_game(id, players, recordings) {
     if (id !== this.player_id) return
-    console.log("joining game")
-    console.dir(recordings)
     this.table = this.add.layer()
-    this.players = players
-    console.dir(players)
-    for (const id in players) {
+    this.colors.forEach(color => {
       const hand = this.add.layer()
-      hand.postFX.addGlow(players[id].color)
-      this.hands[id] = hand
-    }
+      hand.postFX.addGlow(color)
+      this.hands[color] = hand
+    })
+    this.players = players
+    this.color = this.players[this.player_id].color
     this.create_puzzle()
     recordings.forEach( r => this.game.events.emit(r.name, ...r.args))
   }
 
-  clear_selection(player_id) {
-    if (this.hands[player_id]) this.table.add(this.hands[player_id].getChildren().map(c => c))
+  clear_selection(color) {
+    if (this.hands[color]) this.table.add(this.hands[color].getChildren().map(c => c))
   }
 
-  select(player_id, x, y) {
-    this.hands[player_id].add(this.grid[x][y])
+  select(color, x, y) {
+    this.hands[color].add(this.grid[x][y])
   }
 
   connect(cx, cy, ox, oy) {
@@ -93,18 +93,23 @@ class Scene extends Phaser.Scene {
     const groups = new Set(this.grid.flat())
     if (groups.size === 1) {
       this.table.postFX.addShine()
-      for (let id in this.hands) {
-        this.hands[id].postFX.addShine()
+      for (let color in this.hands) {
+        this.hands[color].postFX.addShine()
       }
       this.cameras.main.fadeIn()
     }
-
   }
 
 
   new_game() {
     this.table = this.add.layer()
+    this.colors.forEach(c => {
+      const hand = this.add.layer()
+      hand.postFX.addGlow(c)
+      this.hands[c] = hand
+    })
     this.add_player(this.player_id)
+    this.color = this.players[this.player_id].color
     this.create_puzzle()
   }
 
@@ -164,7 +169,7 @@ class Scene extends Phaser.Scene {
               this.broadcast({
                 name: EVENT.select,
                 args: [
-                  this.player_id,
+                  this.color,
                   container.getData("x"),
                   container.getData("y"),
                 ],
@@ -172,12 +177,12 @@ class Scene extends Phaser.Scene {
             } else {
               this.broadcast({
                 name: EVENT.clear_selection,
-                args: [this.player_id],
+                args: [this.color],
               })
               this.broadcast({
                 name: EVENT.select,
                 args: [
-                  this.player_id,
+                  this.color,
                   container.getData("x"),
                   container.getData("y"),
                 ],
@@ -297,15 +302,12 @@ class Scene extends Phaser.Scene {
   }
 
   my_hand() {
-    return this.hands[this.player_id]
+    return this.hands[this.color]
   }
 
   add_player(player_id) {
     const color = this.colors.pop()
-    const hand = this.add.layer()
     this.players[player_id] = {color: color}
-    this.hands[player_id] = hand
-    hand.postFX.addGlow(color)
   }
   
   record(event) {
@@ -327,6 +329,7 @@ class Scene extends Phaser.Scene {
     this.game.events.on(EVENT.new_game, this.new_game, this)
     this.game.events.on(EVENT.join_game, this.join_game, this)
     this.game.events.on(EVENT.client_joining, this.client_joining, this)
+    this.game.events.on(EVENT.client_leaving, this.client_leaving, this)
 
   }
 
@@ -352,6 +355,11 @@ class Scene extends Phaser.Scene {
         this.recording,
       ],
     })
+  }
+  client_leaving(id) {
+    const {color} = this.players[id]
+    this.colors.push(color)
+    delete this.players[id]
   }
 
   create_hud() {
@@ -432,7 +440,7 @@ const handle_connection = client => {
   client.on("open", () => {
     clients.add(client)
     // from game to client
-    game.events.on(EVENT.peer, event => client.send(event))
+    game.events.on(EVENT.peer, client.send, client)
     
     // from client to game
     client.on("data", event => {
@@ -444,6 +452,14 @@ const handle_connection = client => {
     })
     client.on("close", () => {
       clients.delete(client)
+      game.events.off(EVENT.peer, client.send, client)
+      game.events.emit(EVENT.client_leaving, client.peer)
+    })
+    
+    client.on("error", () => {
+      clients.delete(client)
+      game.events.off(EVENT.peer, client.send, client)
+      game.events.emit(EVENT.client_leaving, client.peer)
     })
     // start joining
     game.events.emit(EVENT.client_joining, client.peer)
