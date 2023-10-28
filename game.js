@@ -66,7 +66,10 @@ class Scene extends Phaser.Scene {
     this.players = players
     this.color = this.players[this.player_id].color
     this.create_puzzle()
+    const old_volume = this.sound.volume
+    this.sound.volume = 0
     recordings.forEach( r => this.game.events.emit(r.name, ...r.args))
+    this.sound.volume = old_volume
   }
 
   clear_selection(color) {
