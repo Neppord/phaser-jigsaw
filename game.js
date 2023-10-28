@@ -10,35 +10,31 @@ const EVENT = {
   new_game: "new_game",
   join_game: "join_game",
   peer: "peer",
+  record: "record",
   client_joining: "client_joining",
 }
 
 class Scene extends Phaser.Scene {
-  puzzle
   game_id
   player_id
-  colors
-  players
-  recording
-  hands
-  grid
   table
+  
+  puzzle= new Puzzle(
+    1920,
+    1080,
+    16 * 2,
+    9 * 2,
+  )
+  piece = this.puzzle.piece
+  colors= [0x0000FF, 0x00FF00, 0xFF0000, 0xFFFF00]
+  players = {}
+  recording = []
+  hands = {}
+  grid= new Array(this.puzzle.width_in_pieces)
+    .fill([])
+    .map(() => new Array(this.puzzle.height_in_pieces))
 
   init(data) {
-    this.puzzle = new Puzzle(
-      1920,
-      1080,
-      16*2,
-      9*2,
-    )
-    console.dir(this.puzzle)
-    this.piece = this.puzzle.piece
-    this.colors = [0x00FF00, 0xFF0000, 0xFFFF00]
-    this.players = {}
-    this.hands = {}
-    this.grid = new Array(this.puzzle.width_in_pieces)
-      .fill([])
-      .map(() => new Array(this.puzzle.height_in_pieces))
   }
 
   preload() {
@@ -55,7 +51,10 @@ class Scene extends Phaser.Scene {
     return ctx
   }
 
-  join_game(players, recordings) {
+  join_game(id, players, recordings) {
+    if (id !== this.player_id) return
+    console.log("joining game")
+    console.dir(recordings)
     this.table = this.add.layer()
     this.players = players
     console.dir(players)
@@ -65,6 +64,7 @@ class Scene extends Phaser.Scene {
       this.hands[id] = hand
     }
     this.create_puzzle()
+    recordings.forEach( r => this.game.events.emit(r.name, ...r.args))
   }
 
   clear_selection(player_id) {
@@ -243,10 +243,8 @@ class Scene extends Phaser.Scene {
   }
 
   send(event) {
-    return this.game.events.emit(
-      EVENT.peer,
-      event,
-    )
+    this.game.events.emit(EVENT.record, event)
+    this.game.events.emit(EVENT.peer, event)
   }
 
   selected() {
@@ -309,6 +307,10 @@ class Scene extends Phaser.Scene {
     this.hands[player_id] = hand
     hand.postFX.addGlow(color)
   }
+  
+  record(event) {
+    this.recording.push(event)
+  }
 
   create() {
     this.create_atlas()
@@ -318,12 +320,13 @@ class Scene extends Phaser.Scene {
     this.game.events.on(EVENT.select, this.select, this)
     this.game.events.on(EVENT.move, this.move, this)
     this.game.events.on(EVENT.connect, this.connect, this)
+    this.game.events.on(EVENT.record, this.record, this)
 
     this.setup_pointer()
 
-    this.game.events.on(EVENT.new_game, () => this.new_game())
-    this.game.events.on(EVENT.join_game, (players, recordings) => this.join_game(players, recordings))
-    this.game.events.on(EVENT.client_joining, id => this.client_joining(id))
+    this.game.events.on(EVENT.new_game, this.new_game, this)
+    this.game.events.on(EVENT.join_game, this.join_game, this)
+    this.game.events.on(EVENT.client_joining, this.client_joining, this)
 
   }
 
@@ -340,11 +343,11 @@ class Scene extends Phaser.Scene {
   }
 
   client_joining(id) {
-    console.log("joining", id)
     this.add_player(id)
     this.game.events.emit(EVENT.peer, {
       name: EVENT.join_game,
       args: [
+        id,
         this.players,
         this.recording,
       ],
@@ -424,17 +427,23 @@ const game = new Phaser.Game({
 const peer = new Peer(undefined, {
   debug: 1,
 })
+const clients = new Set()
 const handle_connection = client => {
   client.on("open", () => {
+    clients.add(client)
     // from game to client
-    game.events.on(EVENT.peer, event => {
-      console.log("Sending event", event)
-      client.send(event)
-    })
+    game.events.on(EVENT.peer, event => client.send(event))
+    
     // from client to game
     client.on("data", event => {
-      console.log("Received event", event)
       game.events.emit(event.name, ...event.args)
+      game.events.emit(EVENT.record, event)
+      Array.from(clients)
+        .filter(c => c !== client)
+        .forEach( c => c.send(event))
+    })
+    client.on("close", () => {
+      clients.delete(client)
     })
     // start joining
     game.events.emit(EVENT.client_joining, client.peer)
@@ -454,10 +463,7 @@ if (location.hash) {
     })
     host.on("open", () => {
       game.events.on(EVENT.peer, event => host.send(event))
-      host.on("data", event => {
-        console.log("received event", event)
-        game.events.emit(event.name, ...event.args)
-      })
+      host.on("data", event => game.events.emit(event.name, ...event.args))
       game.events.emit(EVENT.game_id, host_id)
     })
   })
