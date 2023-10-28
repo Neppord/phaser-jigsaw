@@ -28,7 +28,9 @@ class Scene extends Phaser.Scene {
     9 * 2,
   )
   piece = this.puzzle.piece
-  colors= [0x0000FF, 0x00FF00, 0xFF0000, 0xFFFF00]
+  colors= Phaser.Actions.Shuffle(
+    Phaser.Display.Color.HSVColorWheel(1, 1).map(c => c.color)
+  )
   players = {}
   recording = []
   hands = {}
