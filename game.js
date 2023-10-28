@@ -37,6 +37,7 @@ class Scene extends Phaser.Scene {
   grid= new Array(this.puzzle.width_in_pieces)
     .fill([])
     .map(() => new Array(this.puzzle.height_in_pieces))
+  mute = false
 
   init(data) {
   }
@@ -66,10 +67,9 @@ class Scene extends Phaser.Scene {
     this.players = players
     this.color = this.players[this.player_id].color
     this.create_puzzle()
-    const old_volume = this.sound.volume
-    this.sound.volume = 0
+    this.mute = true
     recordings.forEach( r => this.game.events.emit(r.name, ...r.args))
-    this.sound.volume = old_volume
+    this.mute = false
   }
 
   clear_selection(color) {
@@ -93,7 +93,7 @@ class Scene extends Phaser.Scene {
     o.getData("hitAreas").forEach(ha => hitAreas.push(ha))
 
     o.destroy(true)
-    this.sound.play("connect")
+    if (! this.mute) this.sound.play("connect")
     this.cameras.main.shake(100, 0.005)
     const groups = new Set(this.grid.flat())
     if (groups.size === 1) {
