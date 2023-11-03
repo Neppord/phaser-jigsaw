@@ -292,7 +292,7 @@ class Scene extends Phaser.Scene {
           if (!moved) {
             this.broadcast({
               name: EVENT.clear_selection,
-              args: [this.player_id],
+              args: [this.color],
             })
           }
           this.input.off(Phaser.Input.Events.POINTER_MOVE, move)
