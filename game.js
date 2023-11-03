@@ -147,6 +147,7 @@ class Scene extends Phaser.Scene {
           Phaser.Math.Between(-yOffset, this.puzzle.height - yOffset - this.piece.height),
           piece,
         )
+
         piece.setSize(this.piece.width, this.piece.height)
 
         this.grid[x][y] = container
@@ -418,7 +419,13 @@ class Scene extends Phaser.Scene {
           this.piece.width_overlap + 2 * this.piece.width_overlap * x,
           this.piece.height_overlap + 2 * this.piece.height_overlap * y,
         )
+
+        m.lineStyle(1, 0xFFFFFF, 0.2)
+        m.stroke()
+        atlas.batchDraw(m)
+        
         jigsaw.clearMask(true)
+        
         atlas.add(
           y * this.puzzle.width_in_pieces + x,
           0,
