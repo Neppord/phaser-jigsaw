@@ -3,6 +3,7 @@ import {Puzzle} from "./puzzle.js"
 const EVENT = {
   clear_selection: "clear_selection",
   select: "select",
+  deselect: "deselect",
   move: "move",
   connect: "connect",
   game_id: "game_id",
@@ -79,6 +80,10 @@ class Scene extends Phaser.Scene {
   select(color, x, y) {
     this.hands[color].add(this.grid[x][y])
   }
+  
+  deselect(x, y) {
+    this.table.add(this.grid[x][y])
+  }
 
   connect(cx, cy, ox, oy) {
     const c = this.grid[cx][cy]
@@ -93,6 +98,9 @@ class Scene extends Phaser.Scene {
     o.getData("hitAreas").forEach(ha => hitAreas.push(ha))
 
     o.destroy(true)
+    
+    this.deselect(cx, cy)
+    
     if (! this.mute) this.sound.play("connect")
     this.cameras.main.shake(100, 0.005)
     const groups = new Set(this.grid.flat())
@@ -325,6 +333,7 @@ class Scene extends Phaser.Scene {
 
     this.game.events.on(EVENT.clear_selection, this.clear_selection, this)
     this.game.events.on(EVENT.select, this.select, this)
+    this.game.events.on(EVENT.deselect, this.deselect, this)
     this.game.events.on(EVENT.move, this.move, this)
     this.game.events.on(EVENT.connect, this.connect, this)
     this.game.events.on(EVENT.record, this.record, this)
