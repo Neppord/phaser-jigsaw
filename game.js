@@ -21,21 +21,21 @@ class Scene extends Phaser.Scene {
   player_id
   color
   table
-  
-  puzzle= new Puzzle(
+
+  puzzle = new Puzzle(
     1920,
     1080,
     16 * 2,
     9 * 2,
   )
   piece = this.puzzle.piece
-  colors= Phaser.Actions.Shuffle(
-    Phaser.Display.Color.HSVColorWheel(1, 1).map(c => c.color)
+  colors = Phaser.Actions.Shuffle(
+    Phaser.Display.Color.HSVColorWheel(1, 1).map(c => c.color),
   )
   players = {}
   recording = []
   hands = {}
-  grid= new Array(this.puzzle.width_in_pieces)
+  grid = new Array(this.puzzle.width_in_pieces)
     .fill([])
     .map(() => new Array(this.puzzle.height_in_pieces))
   mute = false
@@ -69,7 +69,7 @@ class Scene extends Phaser.Scene {
     this.color = this.players[this.player_id].color
     this.create_puzzle()
     this.mute = true
-    recordings.forEach( r => this.game.events.emit(r.name, ...r.args))
+    recordings.forEach(r => this.game.events.emit(r.name, ...r.args))
     this.mute = false
   }
 
@@ -80,7 +80,7 @@ class Scene extends Phaser.Scene {
   select(color, x, y) {
     this.hands[color].add(this.grid[x][y])
   }
-  
+
   deselect(x, y) {
     this.table.add(this.grid[x][y])
   }
@@ -98,10 +98,10 @@ class Scene extends Phaser.Scene {
     o.getData("hitAreas").forEach(ha => hitAreas.push(ha))
 
     o.destroy(true)
-    
+
     this.deselect(cx, cy)
-    
-    if (! this.mute) this.sound.play("connect")
+
+    if (!this.mute) this.sound.play("connect")
     this.cameras.main.shake(100, 0.005)
     const groups = new Set(this.grid.flat())
     if (groups.size === 1) {
@@ -323,7 +323,7 @@ class Scene extends Phaser.Scene {
     const color = this.colors.pop()
     this.players[player_id] = {color: color}
   }
-  
+
   record(event) {
     this.recording.push(event)
   }
@@ -371,6 +371,7 @@ class Scene extends Phaser.Scene {
       ],
     })
   }
+
   client_leaving(id) {
     const {color} = this.players[id]
     const color_hex = "#" + color
@@ -423,9 +424,9 @@ class Scene extends Phaser.Scene {
         m.lineStyle(1, 0xFFFFFF, 0.2)
         m.stroke()
         atlas.batchDraw(m)
-        
+
         jigsaw.clearMask(true)
-        
+
         atlas.add(
           y * this.puzzle.width_in_pieces + x,
           0,
@@ -467,14 +468,14 @@ const handle_connection = client => {
     clients.add(client)
     // from game to client
     game.events.on(EVENT.peer, client.send, client)
-    
+
     // from client to game
     client.on("data", event => {
       game.events.emit(event.name, ...event.args)
       game.events.emit(EVENT.record, event)
       Array.from(clients)
         .filter(c => c !== client)
-        .forEach( c => c.send(event))
+        .forEach(c => c.send(event))
     })
     client.on("close", () => {
       console.log(`client ${client.peer} closed`)
@@ -482,7 +483,7 @@ const handle_connection = client => {
       game.events.off(EVENT.peer, client.send, client)
       game.events.emit(EVENT.client_leaving, client.peer)
     })
-    
+
     client.on("error", () => {
       console.log(`client ${client.peer} had error`)
       clients.delete(client)
