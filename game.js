@@ -25,8 +25,8 @@ class Scene extends Phaser.Scene {
   puzzle = new Puzzle(
     1920,
     1080,
-    4,
-    3,
+    16,
+    9,
   )
   piece = this.puzzle.piece
   colors = Phaser.Actions.Shuffle(
