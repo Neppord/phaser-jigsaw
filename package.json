@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "phaser": "^3.60.0"
+  },
+  "devDependencies": {
+    "purescript": "^0.15.12",
+    "spago": "^0.21.0"
   }
 }
